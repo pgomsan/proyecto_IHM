@@ -13,10 +13,19 @@ qt_add_executable(proyecto_IHM
     mainwindow.ui
 )
 
+qt_add_resources(proyecto_IHM_resources
+    resources/resources.qrc
+)
+
 target_link_libraries(proyecto_IHM
     PRIVATE
         Qt::Core
         Qt::Widgets
+)
+
+target_sources(proyecto_IHM
+    PRIVATE
+        ${proyecto_IHM_resources}
 )
 
 include(GNUInstallDirs)
