@@ -2,13 +2,25 @@
 
 ## Visión general del proyecto
 
-Este proyecto implementa una herramienta digital que simula la
-experiencia real de resolver ejercicios de navegación sobre la carta
-náutica del Estrecho de Gibraltar. La aplicación permite registrar
-usuarios, gestionar sesiones, proponer problemas tipo test y editar la
-carta mediante herramientas como puntos, líneas, arcos, regla, compás,
-transportador y zoom. El objetivo es reproducir el entorno del examen de
-forma fiel dentro de una interfaz moderna construida con Qt.
+Herramienta para practicar ejercicios de navegación sobre la carta
+náutica del Estrecho de Gibraltar, replicando el material del examen
+(papel, lápiz, goma, regla, compás y transportador). La aplicación se
+centra en dos bloques: gestión de usuarios/sesiones/problemas tipo test
+e interacción sobre la carta con marcas, medidas y anotaciones. Debe
+simular el proceso real sin penalizar al alumno frente al examen en
+papel.
+
+### Escenarios principales
+
+- Gestión general: registro con validaciones, autenticación, cierre de
+  sesión, propuesta de problema (aleatoria o lista completa), respuesta
+  y verificación, modificación de perfil salvo nickname, y consulta de
+  resultados con filtro por fecha.
+- Edición sobre la carta: marcar puntos, líneas y arcos; anotar texto;
+  cambiar color/grosor; borrar marcas; limpiar la carta; desplazar
+  transportador para medir o trazar con ángulo; medir distancias con
+  regla/compás; mostrar/ocultar proyección a escalas de lat/long; zoom
+  in/out.
 
 ------------------------------------------------------------------------
 
@@ -17,29 +29,33 @@ forma fiel dentro de una interfaz moderna construida con Qt.
 ### **UserAgent**
 
 Gestiona toda la lógica relacionada con los usuarios. - Registro con
-validación de nickname, email, contraseña, edad y avatar. -
-Autenticación. - Modificación del perfil (excepto nickname). - Cierre de
+validación de nickname único (6-15 chars sin espacios, guion o
+subguion), email válido, contraseña fuerte (8-20 chars, mayúsculas,
+minúsculas, dígitos y símbolo !@#$%&*()-+=) y edad >16; admite avatar
+opcional. - Autenticación por nickname + password. - Modificación del
+perfil (email, password, avatar, birthdate; nunca nickname). - Cierre de
 sesión y creación de objetos Session.
 
 ### **ProblemAgent**
 
 Controla el acceso a los problemas de navegación. - Proponer un problema
 aleatorio o mostrar listado completo. - Mostrar enunciado y respuestas
-mezcladas. - Validar la respuesta seleccionada. - Reportar
-aciertos/fallos al SessionAgent.
+mezcladas en cada intento. - Validar la respuesta seleccionada y
+registrar el resultado. - Reportar aciertos/fallos al SessionAgent.
 
 ### **SessionAgent**
 
 Registra la actividad del usuario. - Crear sesiones al cerrar sesión. -
-Guardar aciertos y fallos. - Mostrar y filtrar el historial por fechas.
+Guardar aciertos y fallos. - Mostrar y filtrar el historial por fechas
+(ej. últimos días).
 
 ### **MapEditorAgent**
 
 Gestiona las herramientas aplicadas sobre la carta. - Marcar puntos. -
 Dibujar líneas y arcos. - Añadir texto. - Cambiar color o grosor. -
-Eliminar marcas. - Limpiar la carta. - Mover transportador y medir
-ángulos. - Medir distancias con regla o compás. - Mostrar/ocultar
-extremos de latitud/longitud. - Zoom in/out.
+Eliminar marcas individualmente o limpiar la carta. - Mover transportador
+para medir o trazar con ángulo. - Medir distancias con regla o compás. -
+Mostrar/ocultar extremos de latitud/longitud de un punto. - Zoom in/out.
 
 ### **ToolAgent**
 
@@ -50,13 +66,23 @@ Mantener color/grosor seleccionados. - Coordinarse con MapEditorAgent.
 
 Encargado de la persistencia utilizando la librería proporcionada. -
 Guardar/cargar usuarios. - Guardar/cargar sesiones. - Acceso a Problem y
-Answer.
+Answer. - Integrar la librería de persistencia cuando esté publicada.
 
 ### **UIAgent**
 
 Coordina la interfaz Qt. - Gestión de ventanas, diálogos y mensajes. -
 Aplicación de estilos. - Adaptabilidad al redimensionado. - Comunicación
 entre vista y lógica de agentes.
+
+### Modelo de datos y recursos
+
+- Modelo: User (nickname, email, password, avatar, birthdate, sesiones),
+  Session (timestamp, hits, faults), Problem (texto, respuestas),
+  Answer (texto, validez).
+- Recursos: `resources/carta_nautica.jpg`, estilos CSS para mostrar
+  transportador y regla mediante path SVG, y proyecto base PoiUPV para
+  zoom sobre imagen. Librería de persistencia y ayudas de programación:
+  pendientes de publicar.
 
 ------------------------------------------------------------------------
 
