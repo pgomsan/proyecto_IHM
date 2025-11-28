@@ -13,6 +13,15 @@ qt_add_executable(proyecto_IHM
     mainwindow.ui
 )
 
+add_library(navlib STATIC IMPORTED)
+set_target_properties(navlib PROPERTIES
+    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/navdb/lib/libnavlib.a"
+)
+target_include_directories(proyecto_IHM
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/navdb/lib/include
+)
+
 qt_add_resources(proyecto_IHM_resources
     resources/resources.qrc
 )
@@ -21,11 +30,21 @@ target_link_libraries(proyecto_IHM
     PRIVATE
         Qt::Core
         Qt::Widgets
+        navlib
 )
 
 target_sources(proyecto_IHM
     PRIVATE
         ${proyecto_IHM_resources}
+)
+
+set(NAVDB_FILE "${CMAKE_CURRENT_SOURCE_DIR}/navdb/navdb.sqlite")
+
+add_custom_command(TARGET proyecto_IHM POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${NAVDB_FILE}"
+        "$<TARGET_FILE_DIR:proyecto_IHM>/navdb.sqlite"
+    VERBATIM
 )
 
 include(GNUInstallDirs)
@@ -34,6 +53,11 @@ install(TARGETS proyecto_IHM
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(FILES
+    "${NAVDB_FILE}"
+    DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 qt_generate_deploy_app_script(
