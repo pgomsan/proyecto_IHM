@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QGraphicsView>
+#include <QGraphicsScene>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,7 +19,17 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void zoomIn();
+    void zoomOut();
+
 private:
     Ui::MainWindow *ui;
+    QGraphicsScene *scene;
+    QGraphicsView *view;
+    void applyZoom();
+    double currentZoom = 0.2;
+    static constexpr double kMinZoom = 0.09;
+    static constexpr double kMaxZoom = 1.0;
 };
 #endif // MAINWINDOW_H

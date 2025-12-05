@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(proyecto_IHM LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql)
 
 qt_standard_project_setup()
 
@@ -11,12 +11,10 @@ qt_add_executable(proyecto_IHM
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    navdb/navigation.cpp
+    navdb/navigationdao.cpp
 )
 
-add_library(navlib STATIC IMPORTED)
-set_target_properties(navlib PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/navdb/lib/libnavlib.a"
-)
 target_include_directories(proyecto_IHM
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/navdb/lib/include
@@ -30,7 +28,7 @@ target_link_libraries(proyecto_IHM
     PRIVATE
         Qt::Core
         Qt::Widgets
-        navlib
+        Qt::Sql
 )
 
 target_sources(proyecto_IHM
