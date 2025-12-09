@@ -11,6 +11,7 @@
 #include <QMessageBox>
 #include <QDate>
 #include <QImage>
+#include <QIcon>
 #include <algorithm>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -47,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     currentZoom = 0.20;
     applyZoom();
+    updateUserActionIcon();
 
     // Configuracion de la Tool Bar
     ui->toolBar->setIconSize(QSize(45, 45));
@@ -101,6 +103,14 @@ void MainWindow::applyZoom()
     view->scale(currentZoom, currentZoom);
 }
 
+void MainWindow::updateUserActionIcon()
+{
+    const char *iconPath = userAgent.isLoggedIn()
+            ? ":/icons/user-silhouette.png"
+            : ":/icons/user-silhouette-question.png";
+    ui->actionmenu_usuario->setIcon(QIcon(QString::fromUtf8(iconPath)));
+}
+
 void MainWindow::on_actionmenu_usuario_triggered()
 {
     if (userAgent.isLoggedIn()) {
@@ -147,6 +157,7 @@ void MainWindow::handleLoginRequested(const QString &username, const QString &pa
         QMessageBox::warning(this, tr("Inicio de sesion fallido"), error);
         return;
     }
+    updateUserActionIcon();
     const User *user = userAgent.currentUser();
     QMessageBox::information(this, tr("Inicio de sesion"),
                              tr("Bienvenido, %1").arg(user ? user->nickName() : username));
@@ -170,6 +181,7 @@ void MainWindow::handleRegisterRequested()
             User user(username, email, password, emptyAvatar, birthdate);
             nav.addUser(user);
             userAgent.login(username, password, nullptr); // auto-login suave tras registro
+            updateUserActionIcon();
             QMessageBox::information(this, tr("Registro"),
                                      tr("Usuario %1 creado.").arg(username));
         } catch (const NavDAOException &ex) {

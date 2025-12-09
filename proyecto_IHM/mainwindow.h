@@ -44,6 +44,7 @@ private:
     QGraphicsView *view;
     UserAgent userAgent;
     void applyZoom();
+    void updateUserActionIcon();
     double currentZoom = 0.2;
     static constexpr double kMinZoom = 0.09;
     static constexpr double kMaxZoom = 1.0;
