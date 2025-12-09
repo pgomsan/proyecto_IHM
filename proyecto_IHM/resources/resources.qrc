@@ -14,6 +14,9 @@
         <file>icons/color.png</file>
         <file>icons/eraser.png</file>
         <file>icons/notebook--pencil.png</file>
+        <file>icons/curva.png</file>
+        <file>icons/linea.png</file>
         <file>icons/pointer.png</file>
+        <file>icons/punto.png</file>
     </qresource>
 </RCC>
