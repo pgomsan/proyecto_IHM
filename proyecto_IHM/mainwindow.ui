@@ -13,7 +13,18 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QComboBox" name="comboBox">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>190</y>
+      <width>76</width>
+      <height>26</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
@@ -26,9 +37,23 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionmenu_usuario"/>
+   <addaction name="actionhistorial"/>
+   <addaction name="actionMiMenu_preguntas"/>
    <addaction name="separator"/>
    <addaction name="actionzoom_in"/>
    <addaction name="actionzoom_out"/>
+   <addaction name="separator"/>
+   <addaction name="actionMiMenuPuntos"/>
+   <addaction name="actioncolores"/>
+   <addaction name="actionborrador"/>
+   <addaction name="separator"/>
+   <addaction name="actionregla"/>
+   <addaction name="actioncompas"/>
+   <addaction name="actiontransportador"/>
+   <addaction name="separator"/>
+   <addaction name="actionpuntos_mapa"/>
+   <addaction name="separator"/>
+   <addaction name="actionreset"/>
   </widget>
   <action name="actionzoom_in">
    <property name="icon">
@@ -61,6 +86,126 @@
    </property>
    <property name="text">
     <string>menu_usuario</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionhistorial">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/clock-history.png</normaloff>:/icons/clock-history.png</iconset>
+   </property>
+   <property name="text">
+    <string>historial</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionMiMenu_preguntas">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/notebook--pencil.png</normaloff>:/icons/notebook--pencil.png</iconset>
+   </property>
+   <property name="text">
+    <string>MiMenu_preguntas</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionMiMenuPuntos">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/border-weight.png</normaloff>:/icons/border-weight.png</iconset>
+   </property>
+   <property name="text">
+    <string>MiMenuPuntos</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actioncolores">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/color.png</normaloff>:/icons/color.png</iconset>
+   </property>
+   <property name="text">
+    <string>colores</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionborrador">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/eraser.png</normaloff>:/icons/eraser.png</iconset>
+   </property>
+   <property name="text">
+    <string>borrador</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionregla">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/ruler.svg</normaloff>:/icons/ruler.svg</iconset>
+   </property>
+   <property name="text">
+    <string>regla</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actioncompas">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/compass_leg.svg</normaloff>:/icons/compass_leg.svg</iconset>
+   </property>
+   <property name="text">
+    <string>compas</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actiontransportador">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/transportador.svg</normaloff>:/icons/transportador.svg</iconset>
+   </property>
+   <property name="text">
+    <string>transportador</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionpuntos_mapa">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/pointer.png</normaloff>:/icons/pointer.png</iconset>
+   </property>
+   <property name="text">
+    <string>puntos_mapa</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionreset">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/arrow-circle.png</normaloff>:/icons/arrow-circle.png</iconset>
+   </property>
+   <property name="text">
+    <string>reset</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
