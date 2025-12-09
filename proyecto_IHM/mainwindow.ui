@@ -32,6 +32,7 @@
    <addaction name="actionzoom_in"/>
    <addaction name="actionzoom_out"/>
    <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="actiondibujar_punto"/>
    <addaction name="actiondibujar_linea"/>
    <addaction name="actiondibujar_curva"/>
