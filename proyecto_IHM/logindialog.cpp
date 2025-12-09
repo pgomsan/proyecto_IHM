@@ -25,8 +25,6 @@ LoginDialog::LoginDialog(QWidget *parent) :
     connect(ui->registerButton, &QPushButton::clicked, this, [this]() {
         emit registerRequested();
     });
-    connect(ui->closeButton, &QToolButton::clicked,
-            this, &LoginDialog::onCloseRequested);
 }
 
 LoginDialog::~LoginDialog()
@@ -54,9 +52,4 @@ void LoginDialog::togglePasswordVisibility(bool checked)
     ui->passwordLineEdit->setEchoMode(
         checked ? QLineEdit::Normal : QLineEdit::Password);
     ui->togglePasswordButton->setText(checked ? tr("Ocultar") : tr("Ver"));
-}
-
-void LoginDialog::onCloseRequested()
-{
-    reject();
 }

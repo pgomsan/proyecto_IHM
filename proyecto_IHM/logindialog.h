@@ -23,8 +23,6 @@ signals:
 private slots:
     void handleConfirm();
     void togglePasswordVisibility(bool checked);
-    void onCloseRequested();
-
 private:
     Ui::LoginDialog *ui;
 };
