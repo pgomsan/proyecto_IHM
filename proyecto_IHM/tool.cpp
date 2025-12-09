@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <QApplication>
 #include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QSvgRenderer>
 
 Tool::Tool(const QString& svgResourcePath, QGraphicsItem* parent)
@@ -51,6 +52,39 @@ void Tool::updateOrigin()
     setTransformOriginPoint(boundingRect().center());
 }
 
+Tool* Tool::toggleTool(Tool *&tool,
+                       QGraphicsScene *scene,
+                       QGraphicsView *view,
+                       const QString &resourcePath,
+                       const QSizeF &defaultSize,
+                       const QPoint &initialViewportPos,
+                       bool visible)
+{
+    if (!scene || !view) {
+        return tool;
+    }
+
+    if (!tool) {
+        tool = new Tool(resourcePath);
+        scene->addItem(tool);
+
+        if (defaultSize.width() > 0.0 && defaultSize.height() > 0.0) {
+            tool->setToolSize(defaultSize);
+        }
+
+        tool->setZValue(1000);
+        tool->setPos(view->mapToScene(initialViewportPos));
+    }
+
+    tool->setVisible(visible);
+    if (visible) {
+        tool->setZValue(1000); // ensure on top si se reactiva
+        scene->update();
+    }
+
+    return tool;
+}
+
 void Tool::wheelEvent(QGraphicsSceneWheelEvent *event)
 {
     // Solo rotar si está pulsado Shift
@@ -75,4 +109,3 @@ void Tool::wheelEvent(QGraphicsSceneWheelEvent *event)
 
     event->accept();
 }
-

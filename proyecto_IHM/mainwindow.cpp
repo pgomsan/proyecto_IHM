@@ -20,6 +20,7 @@
 #include <QMenu>
 #include <QKeyEvent>
 #include <QEvent>
+#include <QPoint>
 #include <QMouseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -61,10 +62,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actiondibujar_linea, &QAction::toggled,
             this, &MainWindow::setDrawLineMode);
 
-    // Transportador: activar/desactivar desde la accion del toolbar
+
+    // Botones de herramientas
     ui->actiontransportador->setCheckable(true);
+    ui->actionregla->setCheckable(true);
+    ui->actioncompas->setCheckable(true);
+
+    // Herramientas
     connect(ui->actiontransportador, &QAction::toggled,
             this, &MainWindow::setProtractorVisible);
+    connect(ui->actionregla, &QAction::toggled,
+            this, &MainWindow::setRulerVisible);
+    connect(ui->actioncompas, &QAction::toggled,
+            this, &MainWindow::setCompassVisible);
+
+    ui->actionregla->setChecked(false);
+    ui->actioncompas->setChecked(false);
     ui->actiontransportador->setChecked(false); // empieza oculto
 
     view->viewport()->installEventFilter(this);
@@ -103,6 +116,7 @@ void MainWindow::applyZoom()
     view->scale(currentZoom, currentZoom);
 }
 
+// Update del icono del usuario
 void MainWindow::updateUserActionIcon()
 {
     const char *iconPath = userAgent.isLoggedIn()
@@ -110,7 +124,7 @@ void MainWindow::updateUserActionIcon()
             : ":/icons/user-silhouette-question.png";
     ui->actionmenu_usuario->setIcon(QIcon(QString::fromUtf8(iconPath)));
 }
-
+//Registro de usuario
 void MainWindow::on_actionmenu_usuario_triggered()
 {
     if (userAgent.isLoggedIn()) {
@@ -162,7 +176,6 @@ void MainWindow::handleLoginRequested(const QString &username, const QString &pa
     QMessageBox::information(this, tr("Inicio de sesion"),
                              tr("Bienvenido, %1").arg(user ? user->nickName() : username));
 }
-
 void MainWindow::handleRegisterRequested()
 {
     RegisterDialog dialog(this);
@@ -270,20 +283,37 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     QMainWindow::keyPressEvent(event);
 }
 
+// Llamadas a tools.h para mostrar las herramientas
 void MainWindow::setProtractorVisible(bool visible)
 {
-    if (!m_protractor) {
-        m_protractor = new Tool(":/icons/transportador.svg");
-        scene->addItem(m_protractor);
-
-        m_protractor->setToolSize(QSizeF(580, 380)); // tamano logico aproximado
-        m_protractor->setZValue(1000);               // overlay
-        m_protractor->setPos(view->mapToScene(20, 20));
-    }
-
-    m_protractor->setVisible(visible);
-    if (visible && scene) {
-        m_protractor->setZValue(1000); // ensure on top si se reactiva
-        scene->update();
-    }
+    static const QSizeF kProtractorSize(580.0, 380.0);
+    Tool::toggleTool(m_protractor,
+                     scene,
+                     view,
+                     ":/icons/transportador.svg",
+                     kProtractorSize,
+                     QPoint(20, 20),
+                     visible);
+}
+void MainWindow::setRulerVisible(bool visible)
+{
+    static const QSizeF kRulerSize(600.0, 100.0);
+    Tool::toggleTool(m_ruler,
+                     scene,
+                     view,
+                     ":/icons/ruler.svg",
+                     kRulerSize,
+                     QPoint(20, 150),
+                     visible);
+}
+void MainWindow::setCompassVisible(bool visible)
+{
+    static const QSizeF kCompassSize(220.0, 360.0);
+    Tool::toggleTool(m_compass,
+                     scene,
+                     view,
+                     ":/icons/compass_leg.svg",
+                     kCompassSize,
+                     QPoint(20, 280),
+                     visible);
 }

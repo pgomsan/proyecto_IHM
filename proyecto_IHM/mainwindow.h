@@ -5,6 +5,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QString>
+#include <QPoint>
 #include "useragent.h"
 #include "profiledialog.h"
 #include "tool.h"
@@ -56,7 +57,11 @@ private:
 
     // Display de herramientas
     Tool* m_protractor = nullptr;
+    Tool* m_ruler = nullptr;
+    Tool* m_compass = nullptr;
     void setProtractorVisible(bool visible);
+    void setRulerVisible(bool visible);
+    void setCompassVisible(bool visible);
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar
