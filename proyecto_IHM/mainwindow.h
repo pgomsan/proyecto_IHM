@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include <QString>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -20,8 +21,15 @@ public:
     ~MainWindow();
 
 private slots:
+
+
     void on_actionzoom_in_triggered();
     void on_actionzoom_out_triggered();
+
+    void on_actionmenu_usuario_triggered();
+
+    void handleLoginRequested(const QString &username, const QString &password);
+    void handleRegisterRequested();
 
 private:
     Ui::MainWindow *ui;

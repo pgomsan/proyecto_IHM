@@ -1,8 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "logindialog.h"
 #include <QGraphicsPixmapItem>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QMessageBox>
 #include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -60,4 +62,29 @@ void MainWindow::applyZoom()
 {
     view->resetTransform();
     view->scale(currentZoom, currentZoom);
+}
+
+void MainWindow::on_actionmenu_usuario_triggered()
+{
+    LoginDialog dialog(this);
+    connect(&dialog, &LoginDialog::loginRequested,
+            this, &MainWindow::handleLoginRequested);
+    connect(&dialog, &LoginDialog::registerRequested,
+            this, &MainWindow::handleRegisterRequested);
+    dialog.exec();
+}
+
+void MainWindow::handleLoginRequested(const QString &username, const QString &password)
+{
+    Q_UNUSED(password);
+    QMessageBox::information(this, tr("Inicio de sesión"),
+                             tr("Login solicitado para %1").arg(username));
+    // TODO: delegar en UserAgent cuando esté disponible.
+}
+
+void MainWindow::handleRegisterRequested()
+{
+    QMessageBox::information(this, tr("Registro"),
+                             tr("Abrir flujo de registro"));
+    // TODO: enlazar con flujo de registro real.
 }
