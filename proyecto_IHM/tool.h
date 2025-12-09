@@ -4,7 +4,10 @@
 #include <QGraphicsSvgItem>
 #include <QGraphicsSceneWheelEvent>
 #include <QSizeF>
+#include <QPoint>
 
+class QGraphicsScene;
+class QGraphicsView;
 class Tool : public QGraphicsSvgItem
 {
 public:
@@ -13,6 +16,15 @@ public:
 
     // Escala uniforme de la regla a un tamano objetivo (en pixeles de escena)
     void setToolSize(const QSizeF& sizePx);
+
+    // Crea/actualiza una herramienta comun en escena y vista
+    static Tool* toggleTool(Tool *&tool,
+                            QGraphicsScene *scene,
+                            QGraphicsView *view,
+                            const QString &resourcePath,
+                            const QSizeF &defaultSize,
+                            const QPoint &initialViewportPos,
+                            bool visible);
 
 protected:
     void wheelEvent(QGraphicsSceneWheelEvent *event) override;
