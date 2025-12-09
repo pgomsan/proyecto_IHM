@@ -18,5 +18,6 @@
         <file>icons/linea.png</file>
         <file>icons/pointer.png</file>
         <file>icons/punto.png</file>
+        <file>icons/anadir-texto.png</file>
     </qresource>
 </RCC>

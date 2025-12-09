@@ -36,6 +36,7 @@
    <addaction name="actiondibujar_punto"/>
    <addaction name="actiondibujar_linea"/>
    <addaction name="actiondibujar_curva"/>
+   <addaction name="actionanadir_texto"/>
    <addaction name="actioncolores"/>
    <addaction name="actionborrador"/>
    <addaction name="separator"/>
@@ -225,6 +226,27 @@
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionanadir_texto">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/anadir-texto.png</normaloff>:/icons/anadir-texto.png</iconset>
+   </property>
+   <property name="text">
+    <string>anadir-texto</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+   <property name="iconVisibleInMenu">
+    <bool>false</bool>
    </property>
   </action>
  </widget>
