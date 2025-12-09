@@ -32,7 +32,9 @@
    <addaction name="actionzoom_in"/>
    <addaction name="actionzoom_out"/>
    <addaction name="separator"/>
-   <addaction name="actionMiMenuPuntos"/>
+   <addaction name="actiondibujar_punto"/>
+   <addaction name="actiondibujar_linea"/>
+   <addaction name="actiondibujar_curva"/>
    <addaction name="actioncolores"/>
    <addaction name="actionborrador"/>
    <addaction name="separator"/>
@@ -99,18 +101,6 @@
    </property>
    <property name="text">
     <string>MiMenu_preguntas</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionMiMenuPuntos">
-   <property name="icon">
-    <iconset resource="resources/resources.qrc">
-     <normaloff>:/icons/border-weight.png</normaloff>:/icons/border-weight.png</iconset>
-   </property>
-   <property name="text">
-    <string>MiMenuPuntos</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -195,6 +185,42 @@
    </property>
    <property name="text">
     <string>reset</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actiondibujar_punto">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/punto.png</normaloff>:/icons/punto.png</iconset>
+   </property>
+   <property name="text">
+    <string>dibujar_punto</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actiondibujar_linea">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/linea.png</normaloff>:/icons/linea.png</iconset>
+   </property>
+   <property name="text">
+    <string>dibujar_linea</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actiondibujar_curva">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/curva.png</normaloff>:/icons/curva.png</iconset>
+   </property>
+   <property name="text">
+    <string>dibujar_curva</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
