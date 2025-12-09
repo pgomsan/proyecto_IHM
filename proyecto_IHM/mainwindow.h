@@ -5,6 +5,8 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QString>
+#include "useragent.h"
+#include "profiledialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -39,6 +41,7 @@ private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     QGraphicsView *view;
+    UserAgent userAgent;
     void applyZoom();
     double currentZoom = 0.2;
     static constexpr double kMinZoom = 0.09;
