@@ -11,6 +11,9 @@ qt_add_executable(proyecto_IHM
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    logindialog.cpp
+    logindialog.h
+    logindialog.ui
     navdb/navigation.cpp
     navdb/navigationdao.cpp
 )
