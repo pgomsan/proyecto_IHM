@@ -19,19 +19,10 @@ MainWindow::MainWindow(QWidget *parent)
     view->setResizeAnchor(QGraphicsView::AnchorViewCenter);
     view->setDragMode(QGraphicsView::ScrollHandDrag);
 
-    auto *controlsLayout = new QHBoxLayout;
-    controlsLayout->addWidget(ui->zoom_out);
-    controlsLayout->addWidget(ui->zoom_in);
-    controlsLayout->addStretch();
-
     auto *mainLayout = new QVBoxLayout(ui->centralwidget);
     mainLayout->setContentsMargins(8, 8, 8, 8);
     mainLayout->setSpacing(6);
-    mainLayout->addLayout(controlsLayout);
     mainLayout->addWidget(view, 1);
-
-    connect(ui->zoom_in, &QPushButton::clicked, this, &MainWindow::zoomIn);
-    connect(ui->zoom_out, &QPushButton::clicked, this, &MainWindow::zoomOut);
 
     QPixmap pm(":/images/carta_nautica.jpg");
     QGraphicsPixmapItem *item = scene->addPixmap(pm);
@@ -46,7 +37,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::zoomIn()
+
+// Acciones del zoom
+void MainWindow::on_actionzoom_in_triggered()
 {
     double newZoom = std::clamp(currentZoom * 1.2, kMinZoom, kMaxZoom);
     if (newZoom != currentZoom) {
@@ -54,16 +47,15 @@ void MainWindow::zoomIn()
         applyZoom();
     }
 }
-
-void MainWindow::zoomOut()
+void MainWindow::on_actionzoom_out_triggered()
 {
+
     double newZoom = std::clamp(currentZoom / 1.2, kMinZoom, kMaxZoom);
     if (newZoom != currentZoom) {
         currentZoom = newZoom;
         applyZoom();
     }
 }
-
 void MainWindow::applyZoom()
 {
     view->resetTransform();

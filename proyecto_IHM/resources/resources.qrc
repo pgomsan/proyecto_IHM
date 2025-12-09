@@ -4,5 +4,10 @@
         <file>icons/compass_leg.svg</file>
         <file>icons/ruler.svg</file>
         <file>icons/transportador.svg</file>
+        <file>icons/border-weight.png</file>
+        <file>icons/magnifier-zoom-in.png</file>
+        <file>icons/magnifier-zoom-out.png</file>
+        <file>icons/user-silhouette.png</file>
+        <file>icons/user-silhouette-question.png</file>
     </qresource>
 </RCC>
