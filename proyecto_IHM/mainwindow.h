@@ -7,6 +7,7 @@
 #include <QString>
 #include "useragent.h"
 #include "profiledialog.h"
+#include "tool.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -52,6 +53,10 @@ private:
     bool m_drawLineMode = false;
     QGraphicsLineItem *m_currentLineItem = nullptr;
     QPointF m_lineStart;
+
+    // Display de herramientas
+    Tool* m_protractor = nullptr;
+    void setProtractorVisible(bool visible);
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar

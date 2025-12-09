@@ -22,7 +22,6 @@
 #include <QEvent>
 #include <QMouseEvent>
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow),
@@ -51,20 +50,24 @@ MainWindow::MainWindow(QWidget *parent)
     applyZoom();
     updateUserActionIcon();
 
-    // Configuración de la Tool Bar
+    // Configuracion de la Tool Bar
     ui->toolBar->setIconSize(QSize(45, 45));
     ui->toolBar->setMovable(false);
     ui->toolBar->setFloatable(false);
 
-
+    // Configuracion de dibujos
+    // Linea
     ui->actiondibujar_linea->setCheckable(true);
     connect(ui->actiondibujar_linea, &QAction::toggled,
             this, &MainWindow::setDrawLineMode);
 
+    // Transportador: activar/desactivar desde la accion del toolbar
+    ui->actiontransportador->setCheckable(true);
+    connect(ui->actiontransportador, &QAction::toggled,
+            this, &MainWindow::setProtractorVisible);
+    ui->actiontransportador->setChecked(false); // empieza oculto
 
     view->viewport()->installEventFilter(this);
-
-
 }
 
 MainWindow::~MainWindow()
@@ -88,7 +91,6 @@ void MainWindow::on_actionzoom_in_triggered()
 }
 void MainWindow::on_actionzoom_out_triggered()
 {
-
     double newZoom = std::clamp(currentZoom / 1.2, kMinZoom, kMaxZoom);
     if (newZoom != currentZoom) {
         currentZoom = newZoom;
@@ -135,8 +137,7 @@ void MainWindow::on_actionmenu_usuario_triggered()
         });
         connect(&dialog, &ProfileDialog::logoutRequested, this, [this]() {
             userAgent.logout();
-            QMessageBox::information(this, tr("Sesión"), tr("Has cerrado sesión."));
-            updateUserActionIcon();
+            QMessageBox::information(this, tr("Sesion"), tr("Has cerrado sesion."));
         });
         dialog.exec();
         return;
@@ -153,12 +154,12 @@ void MainWindow::handleLoginRequested(const QString &username, const QString &pa
 {
     QString error;
     if (!userAgent.login(username, password, &error)) {
-        QMessageBox::warning(this, tr("Inicio de sesión fallido"), error);
+        QMessageBox::warning(this, tr("Inicio de sesion fallido"), error);
         return;
     }
     updateUserActionIcon();
     const User *user = userAgent.currentUser();
-    QMessageBox::information(this, tr("Inicio de sesión"),
+    QMessageBox::information(this, tr("Inicio de sesion"),
                              tr("Bienvenido, %1").arg(user ? user->nickName() : username));
 }
 
@@ -191,7 +192,6 @@ void MainWindow::handleRegisterRequested()
     dialog.exec();
 }
 
-
 // Dibujo de lineas con click derecho
 void MainWindow::setDrawLineMode(bool enabled)
 {
@@ -216,11 +216,11 @@ void MainWindow::setDrawLineMode(bool enabled)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == view->viewport() && m_drawLineMode) {
-        // Solo interceptamos eventos cuando estamos en modo dibujar línea
+        // Solo interceptamos eventos cuando estamos en modo dibujar linea
         if (event->type() == QEvent::MouseButtonPress) {
             auto *e = static_cast<QMouseEvent*>(event);
             if (e->button() == Qt::RightButton) {
-                // Punto inicial de la línea en coordenadas de escena
+                // Punto inicial de la linea en coordenadas de escena
                 m_lineStart = view->mapToScene(e->pos());
 
                 QPen pen(Qt::red, 8);
@@ -244,7 +244,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         else if (event->type() == QEvent::MouseButtonRelease) {
             auto *e = static_cast<QMouseEvent*>(event);
             if (e->button() == Qt::RightButton && m_currentLineItem) {
-                // Si la línea es casi un punto, la podemos eliminar
+                // Si la linea es casi un punto, la podemos eliminar
                 QLineF line = m_currentLineItem->line();
                 if (line.length() < 2.0) {
                     scene->removeItem(m_currentLineItem);
@@ -261,11 +261,29 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape && m_drawLineMode) {
-        // Salir del modo dibujo si está activo
+        // Salir del modo dibujo si esta activo
         setDrawLineMode(false);
         event->accept();
         return;
     }
 
     QMainWindow::keyPressEvent(event);
+}
+
+void MainWindow::setProtractorVisible(bool visible)
+{
+    if (!m_protractor) {
+        m_protractor = new Tool(":/icons/transportador.svg");
+        scene->addItem(m_protractor);
+
+        m_protractor->setToolSize(QSizeF(580, 380)); // tamano logico aproximado
+        m_protractor->setZValue(1000);               // overlay
+        m_protractor->setPos(view->mapToScene(20, 20));
+    }
+
+    m_protractor->setVisible(visible);
+    if (visible && scene) {
+        m_protractor->setZValue(1000); // ensure on top si se reactiva
+        scene->update();
+    }
 }

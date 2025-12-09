@@ -1,7 +1,14 @@
 cmake_minimum_required(VERSION 3.19)
 project(proyecto_IHM LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql)
+# Añadimos Svg y SvgWidgets
+find_package(Qt6 6.5 REQUIRED COMPONENTS
+    Core
+    Widgets
+    Sql
+    Svg
+    SvgWidgets
+)
 
 qt_standard_project_setup()
 
@@ -24,6 +31,8 @@ qt_add_executable(proyecto_IHM
     useragent.h
     navdb/navigation.cpp
     navdb/navigationdao.cpp
+    tool.cpp
+    tool.h
 )
 
 target_include_directories(proyecto_IHM
@@ -35,16 +44,19 @@ qt_add_resources(proyecto_IHM_resources
     resources/resources.qrc
 )
 
+target_sources(proyecto_IHM
+    PRIVATE
+        ${proyecto_IHM_resources}
+)
+
+# Enlazamos también contra Svg y SvgWidgets
 target_link_libraries(proyecto_IHM
     PRIVATE
         Qt::Core
         Qt::Widgets
         Qt::Sql
-)
-
-target_sources(proyecto_IHM
-    PRIVATE
-        ${proyecto_IHM_resources}
+        Qt::Svg
+        Qt::SvgWidgets
 )
 
 set(NAVDB_FILE "${CMAKE_CURRENT_SOURCE_DIR}/navdb/navdb.sqlite")
