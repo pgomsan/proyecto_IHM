@@ -20,11 +20,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void zoomIn();
-    void zoomOut();
-
     void on_actionzoom_in_triggered();
-
     void on_actionzoom_out_triggered();
 
 private:

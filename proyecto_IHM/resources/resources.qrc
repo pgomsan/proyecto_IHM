@@ -9,5 +9,11 @@
         <file>icons/magnifier-zoom-out.png</file>
         <file>icons/user-silhouette.png</file>
         <file>icons/user-silhouette-question.png</file>
+        <file>icons/clock-history.png</file>
+        <file>icons/arrow-circle.png</file>
+        <file>icons/color.png</file>
+        <file>icons/eraser.png</file>
+        <file>icons/notebook--pencil.png</file>
+        <file>icons/pointer.png</file>
     </qresource>
 </RCC>
