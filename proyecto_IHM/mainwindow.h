@@ -22,11 +22,15 @@ public:
 
 private slots:
 
-
+    // Zoom
     void on_actionzoom_in_triggered();
     void on_actionzoom_out_triggered();
-
     void on_actionmenu_usuario_triggered();
+
+
+
+
+    void setDrawLineMode(bool enabled);
 
     void handleLoginRequested(const QString &username, const QString &password);
     void handleRegisterRequested();
@@ -39,5 +43,17 @@ private:
     double currentZoom = 0.2;
     static constexpr double kMinZoom = 0.09;
     static constexpr double kMaxZoom = 1.0;
+
+    // Dibujo de lineas
+    bool m_drawLineMode = false;
+    QGraphicsLineItem *m_currentLineItem = nullptr;
+    QPointF m_lineStart;
+
+protected:
+    QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar
+    bool eventFilter(QObject *obj, QEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 };
+
+
 #endif // MAINWINDOW_H

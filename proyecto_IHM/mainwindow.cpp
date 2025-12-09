@@ -6,6 +6,15 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <algorithm>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QGraphicsLineItem>
+#include <QPointF>
+#include <QMenu>
+#include <QKeyEvent>
+#include <QEvent>
+#include <QMouseEvent>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -32,6 +41,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     currentZoom = 0.20;
     applyZoom();
+
+    // Configuración de la Tool Bar
+    ui->toolBar->setIconSize(QSize(45, 45));
+    ui->toolBar->setMovable(false);
+    ui->toolBar->setFloatable(false);
+
+
+    ui->actiondibujar_linea->setCheckable(true);
+    connect(ui->actiondibujar_linea, &QAction::toggled,
+            this, &MainWindow::setDrawLineMode);
+
+
+    view->viewport()->installEventFilter(this);
+
+
 }
 
 MainWindow::~MainWindow()
@@ -39,6 +63,10 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+QMenu* MainWindow::createPopupMenu()
+{
+    return nullptr;
+}
 
 // Acciones del zoom
 void MainWindow::on_actionzoom_in_triggered()
@@ -73,7 +101,6 @@ void MainWindow::on_actionmenu_usuario_triggered()
             this, &MainWindow::handleRegisterRequested);
     dialog.exec();
 }
-
 void MainWindow::handleLoginRequested(const QString &username, const QString &password)
 {
     Q_UNUSED(password);
@@ -88,3 +115,84 @@ void MainWindow::handleRegisterRequested()
                              tr("Abrir flujo de registro"));
     // TODO: enlazar con flujo de registro real.
 }
+
+
+// Dibujo de lineas con click derecho
+void MainWindow::setDrawLineMode(bool enabled)
+{
+    m_drawLineMode = enabled;
+
+    if (m_drawLineMode) {
+        view->setDragMode(QGraphicsView::NoDrag);
+        view->setCursor(Qt::CrossCursor);
+    } else {
+        view->setDragMode(QGraphicsView::ScrollHandDrag);
+        view->unsetCursor();
+
+        if (m_currentLineItem) {
+            scene->removeItem(m_currentLineItem);
+            delete m_currentLineItem;
+            m_currentLineItem = nullptr;
+        }
+        if (ui->actiondibujar_linea->isChecked())
+            ui->actiondibujar_linea->setChecked(false);
+    }
+}
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if (obj == view->viewport() && m_drawLineMode) {
+        // Solo interceptamos eventos cuando estamos en modo dibujar línea
+        if (event->type() == QEvent::MouseButtonPress) {
+            auto *e = static_cast<QMouseEvent*>(event);
+            if (e->button() == Qt::RightButton) {
+                // Punto inicial de la línea en coordenadas de escena
+                m_lineStart = view->mapToScene(e->pos());
+
+                QPen pen(Qt::red, 8);
+                m_currentLineItem = new QGraphicsLineItem();
+                m_currentLineItem->setZValue(10);
+                m_currentLineItem->setPen(pen);
+                m_currentLineItem->setLine(QLineF(m_lineStart, m_lineStart));
+                scene->addItem(m_currentLineItem);
+
+                return true;
+            }
+        }
+        else if (event->type() == QEvent::MouseMove) {
+            auto *e = static_cast<QMouseEvent*>(event);
+            if (e->buttons() & Qt::RightButton && m_currentLineItem) {
+                QPointF p2 = view->mapToScene(e->pos());
+                m_currentLineItem->setLine(QLineF(m_lineStart, p2));
+                return true;
+            }
+        }
+        else if (event->type() == QEvent::MouseButtonRelease) {
+            auto *e = static_cast<QMouseEvent*>(event);
+            if (e->button() == Qt::RightButton && m_currentLineItem) {
+                // Si la línea es casi un punto, la podemos eliminar
+                QLineF line = m_currentLineItem->line();
+                if (line.length() < 2.0) {
+                    scene->removeItem(m_currentLineItem);
+                    delete m_currentLineItem;
+                }
+                m_currentLineItem = nullptr;
+                return true;
+            }
+        }
+    }
+
+    return QMainWindow::eventFilter(obj, event);
+}
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Escape && m_drawLineMode) {
+        // Salir del modo dibujo si está activo
+        setDrawLineMode(false);
+        event->accept();
+        return;
+    }
+
+    QMainWindow::keyPressEvent(event);
+}
+
+
