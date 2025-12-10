@@ -280,6 +280,7 @@ void MainWindow::setDrawLineMode(bool enabled)
 
     const QSignalBlocker blocker(ui->actiondibujar_linea);
     ui->actiondibujar_linea->setChecked(dibujos.drawLineMode());
+    }
 }
 
 void MainWindow::setDrawPointMode(bool enabled)
@@ -355,18 +356,21 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     return true;
                 }
             }
-        } else if (m_eraserMode) {
+        }
+        else if (m_eraserMode) {
             auto *e = static_cast<QMouseEvent*>(event);
-            const bool rightPress = (event->type() == QEvent::MouseButtonPress && e->button() == Qt::RightButton);
-            const bool rightDrag  = (event->type() == QEvent::MouseMove && (e->buttons() & Qt::RightButton));
+            const bool rightPress =
+                (event->type() == QEvent::MouseButtonPress && e->button() == Qt::RightButton);
+            const bool rightDrag  =
+                (event->type() == QEvent::MouseMove && (e->buttons() & Qt::RightButton));
 
             if (rightPress || rightDrag) {
                 const QPointF scenePos = view->mapToScene(e->pos());
                 const QList<QGraphicsItem*> hitItems = scene->items(
-                            scenePos,
-                            Qt::IntersectsItemShape,
-                            Qt::DescendingOrder,
-                            view->transform());
+                    scenePos,
+                    Qt::IntersectsItemShape,
+                    Qt::DescendingOrder,
+                    view->transform());
 
                 for (QGraphicsItem *hitItem : hitItems) {
                     if (auto *line = qgraphicsitem_cast<QGraphicsLineItem*>(hitItem)) {
@@ -379,12 +383,16 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     }
                 }
             }
+        }
+    }
+
     if (dibujos.handleEvent(obj, event)) {
         return true;
     }
 
     return QMainWindow::eventFilter(obj, event);
 }
+
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape) {
@@ -405,33 +413,6 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
 
     QMainWindow::keyPressEvent(event);
-}
-
-void MainWindow::on_actionpuntos_mapa_triggered()
-{
-    const auto &coords = dibujos.pointCoordinates();
-    if (coords.isEmpty()) {
-        QMessageBox::information(this, tr("Puntos"), tr("No hay puntos guardados."));
-        return;
-    }
-    if (event->key() == Qt::Key_Escape && m_eraserMode) {
-        ui->actionborrador->setChecked(false);
-        event->accept();
-        return;
-    }
-
-    QStringList lines;
-    for (int i = 0; i < coords.size(); ++i) {
-        const QPointF &p = coords.at(i);
-        lines << tr("Punto %1: X=%2, Y=%3")
-                 .arg(i + 1)
-                 .arg(p.x(), 0, 'f', 1)
-                 .arg(p.y(), 0, 'f', 1);
-    }
-
-    QMessageBox::information(this,
-                             tr("Puntos en el mapa"),
-                             lines.join("\n"));
 }
 
 // Llamadas a tools.h para mostrar las herramientas
