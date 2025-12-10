@@ -63,11 +63,7 @@ private:
     static constexpr double kMaxZoom = 1.0;
 
     // Dibujo de lineas
-    bool m_drawLineMode = false;
     bool m_eraserMode = false;
-    QGraphicsLineItem *m_currentLineItem = nullptr;
-    QPointF m_lineStart;
-    QColor m_lineColor = Qt::red;
 
     // Display de herramientas
     Tool* m_protractor = nullptr;
@@ -77,7 +73,6 @@ private:
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
     void setEraserMode(bool enabled);
-    void addPointAt(const QPointF &scenePos);
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar

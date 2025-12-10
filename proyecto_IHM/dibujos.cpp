@@ -65,14 +65,6 @@ void Dibujos::setPointColor(const QColor &color)
     }
 
     m_pointColor = color;
-
-    for (QGraphicsEllipseItem *point : m_pointItems) {
-        if (!point) {
-            continue;
-        }
-        point->setPen(QPen(m_pointColor, point->pen().widthF()));
-        point->setBrush(QBrush(m_pointColor));
-    }
 }
 
 bool Dibujos::handleEvent(QObject *obj, QEvent *event)
