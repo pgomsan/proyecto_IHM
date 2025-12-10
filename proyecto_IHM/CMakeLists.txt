@@ -27,6 +27,10 @@ qt_add_executable(proyecto_IHM
     profiledialog.cpp
     profiledialog.h
     profiledialog.ui
+    questiondialog.cpp
+    questiondialog.h
+    questionbankdialog.cpp
+    questionbankdialog.h
     useragent.cpp
     useragent.h
     navdb/navigation.cpp

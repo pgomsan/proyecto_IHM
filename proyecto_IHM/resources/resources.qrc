@@ -19,5 +19,6 @@
         <file>icons/pointer.png</file>
         <file>icons/punto.png</file>
         <file>icons/anadir-texto.png</file>
+        <file>icons/arrow-switch.png</file>
     </qresource>
 </RCC>

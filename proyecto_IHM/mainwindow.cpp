@@ -3,6 +3,8 @@
 #include "logindialog.h"
 #include "registerdialog.h"
 #include "profiledialog.h"
+#include "questiondialog.h"
+#include "questionbankdialog.h"
 #include "navdb/lib/include/navigation.h"
 #include "navdb/lib/include/navdaoexception.h"
 #include <QGraphicsPixmapItem>
@@ -15,11 +17,17 @@
 #include <algorithm>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QGraphicsLineItem>
+#include <QGraphicsItem>
+#include <QColorDialog>
+#include <QPen>
+#include <QPointF>
 #include <QMenu>
 #include <QKeyEvent>
 #include <QEvent>
 #include <QPoint>
 #include <QMouseEvent>
+#include <QRandomGenerator>
 #include <QPointF>
 #include <QStringList>
 #include <QSignalBlocker>
@@ -165,7 +173,9 @@ void MainWindow::updateUserActionIcon()
     ui->actionmenu_usuario->setIcon(QIcon(QString::fromUtf8(iconPath)));
     ui->actionhistorial->setEnabled(loggedIn);
     ui->actionMiMenu_preguntas->setEnabled(loggedIn);
+    ui->actionPregunta_aleatoria->setEnabled(loggedIn);
 }
+
 //Registro de usuario
 void MainWindow::on_actionmenu_usuario_triggered()
 {
@@ -248,6 +258,52 @@ void MainWindow::handleRegisterRequested()
     dialog.exec();
 }
 
+void MainWindow::on_actionMiMenu_preguntas_triggered()
+{
+    openQuestionBank();
+}
+
+void MainWindow::on_actionPregunta_aleatoria_triggered()
+{
+    showRandomProblem();
+}
+
+void MainWindow::showRandomProblem()
+{
+    const auto &problems = Navigation::instance().problems();
+    if (problems.isEmpty()) {
+        QMessageBox::information(this, tr("Preguntas"),
+                                 tr("No hay preguntas disponibles en la base de datos."));
+        return;
+    }
+    const int idx = QRandomGenerator::global()->bounded(problems.size());
+    openProblemDialog(problems.at(idx));
+}
+
+void MainWindow::openQuestionBank()
+{
+    const auto &problems = Navigation::instance().problems();
+    if (problems.isEmpty()) {
+        QMessageBox::information(this, tr("Preguntas"),
+                                 tr("No hay preguntas disponibles en la base de datos."));
+        return;
+    }
+
+    QuestionBankDialog dialog(problems, this);
+    connect(&dialog, &QuestionBankDialog::problemSelected,
+            this, &MainWindow::openProblemDialog);
+    dialog.exec();
+}
+
+void MainWindow::openProblemDialog(const Problem &problem)
+{
+    auto *dialog = new ProblemDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setProblem(problem);
+    dialog->show();
+}
+
+// Dibujo de lineas con click derecho
 void MainWindow::setDrawLineMode(bool enabled)
 {
     m_drawLineMode = enabled;
