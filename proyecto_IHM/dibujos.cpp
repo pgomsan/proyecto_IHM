@@ -17,11 +17,7 @@ DMS Dibujos::decimalToDMS(double value, bool isLatitude)
 {
     DMS dms;
 
-    // Hemisferio
-    if (isLatitude)
-        dms.hemisphere = (value >= 0.0) ? QChar('N') : QChar('S');
-    else
-        dms.hemisphere = (value >= 0.0) ? QChar('E') : QChar('W');
+
 
     // Valor absoluto para el cálculo
     double absVal = std::fabs(value);
@@ -45,11 +41,10 @@ QString Dibujos::formatDMS(double value, bool isLatitude)
     // anchura: lat 2 dígitos, lon 3
     int degWidth = isLatitude ? 2 : 3;
 
-    return QString("%1° %2' %3\" %4")
+    return QString("%1° %2' %3\"")
         .arg(d.degrees, degWidth, 10, QLatin1Char('0'))   // grados con ceros delante
         .arg(d.minutes, 2, 10, QLatin1Char('0'))          // minutos 2 dígitos
-        .arg(d.seconds, 0, 'f', 2)                       // segundos con 2 decimales
-        .arg(d.hemisphere);
+        .arg(d.seconds, 0, 'f', 2);                       // segundos con 2 decimales
 }
 
 Dibujos::Dibujos(QGraphicsScene *scene, QGraphicsView *view)

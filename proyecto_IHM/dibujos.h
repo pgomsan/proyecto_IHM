@@ -21,7 +21,6 @@ struct DMS {
     int degrees;
     int minutes;
     double seconds;
-    QChar hemisphere;
 };
 
 class Dibujos
