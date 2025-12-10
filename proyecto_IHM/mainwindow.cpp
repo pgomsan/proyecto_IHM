@@ -19,8 +19,6 @@
 #include <QGraphicsView>
 #include <QGraphicsLineItem>
 #include <QGraphicsItem>
-#include <QColorDialog>
-#include <QPen>
 #include <QPointF>
 #include <QMenu>
 #include <QKeyEvent>
@@ -28,7 +26,6 @@
 #include <QPoint>
 #include <QMouseEvent>
 #include <QRandomGenerator>
-#include <QPointF>
 #include <QStringList>
 #include <QSignalBlocker>
 #include <QColorDialog>
@@ -306,27 +303,10 @@ void MainWindow::openProblemDialog(const Problem &problem)
 // Dibujo de lineas con click derecho
 void MainWindow::setDrawLineMode(bool enabled)
 {
-    m_drawLineMode = enabled;
+    if (enabled && m_eraserMode && ui->actionborrador->isChecked()) {
+        ui->actionborrador->setChecked(false);
+    }
 
-    if (m_drawLineMode) {
-        if (m_eraserMode && ui->actionborrador->isChecked()) {
-            ui->actionborrador->setChecked(false);
-        }
-        view->setDragMode(QGraphicsView::NoDrag);
-        view->setCursor(Qt::CrossCursor);
-    } else {
-        view->setDragMode(QGraphicsView::ScrollHandDrag);
-        if (!m_eraserMode) {
-            view->unsetCursor();
-        }
-
-        if (m_currentLineItem) {
-            scene->removeItem(m_currentLineItem);
-            delete m_currentLineItem;
-            m_currentLineItem = nullptr;
-        }
-        if (ui->actiondibujar_linea->isChecked())
-            ui->actiondibujar_linea->setChecked(false);
     dibujos.setDrawLineMode(enabled);
 
     if (!dibujos.drawPointMode() && ui->actiondibujar_punto->isChecked()) {
@@ -336,11 +316,14 @@ void MainWindow::setDrawLineMode(bool enabled)
 
     const QSignalBlocker blocker(ui->actiondibujar_linea);
     ui->actiondibujar_linea->setChecked(dibujos.drawLineMode());
-    }
 }
 
 void MainWindow::setDrawPointMode(bool enabled)
 {
+    if (enabled && m_eraserMode && ui->actionborrador->isChecked()) {
+        ui->actionborrador->setChecked(false);
+    }
+
     dibujos.setDrawPointMode(enabled);
 
     if (!dibujos.drawLineMode() && ui->actiondibujar_linea->isChecked()) {
@@ -357,63 +340,30 @@ void MainWindow::setEraserMode(bool enabled)
     m_eraserMode = enabled;
 
     if (m_eraserMode) {
-        if (m_drawLineMode && ui->actiondibujar_linea->isChecked()) {
+        // Desactivar modos de dibujo para evitar conflictos
+        if (ui->actiondibujar_linea->isChecked()) {
+            const QSignalBlocker blocker(ui->actiondibujar_linea);
             ui->actiondibujar_linea->setChecked(false);
         }
+        if (ui->actiondibujar_punto->isChecked()) {
+            const QSignalBlocker blocker(ui->actiondibujar_punto);
+            ui->actiondibujar_punto->setChecked(false);
+        }
+        dibujos.setDrawLineMode(false);
+        dibujos.setDrawPointMode(false);
+
         // Mantener el desplazamiento con click izquierdo, borrar con click derecho
         view->setDragMode(QGraphicsView::ScrollHandDrag);
         view->setCursor(Qt::PointingHandCursor);
     } else {
-        if (!m_drawLineMode) {
-            view->setDragMode(QGraphicsView::ScrollHandDrag);
-            view->unsetCursor();
-        }
+        view->setDragMode(QGraphicsView::ScrollHandDrag);
+        view->unsetCursor();
     }
 }
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     if (obj == view->viewport()) {
-        if (m_drawLineMode) {
-            // Solo interceptamos eventos cuando estamos en modo dibujar linea
-            if (event->type() == QEvent::MouseButtonPress) {
-                auto *e = static_cast<QMouseEvent*>(event);
-                if (e->button() == Qt::RightButton) {
-                    // Punto inicial de la linea en coordenadas de escena
-                    m_lineStart = view->mapToScene(e->pos());
-
-                    QPen pen(m_lineColor, 8);
-                    m_currentLineItem = new QGraphicsLineItem();
-                    m_currentLineItem->setZValue(10);
-                    m_currentLineItem->setPen(pen);
-                    m_currentLineItem->setLine(QLineF(m_lineStart, m_lineStart));
-                    scene->addItem(m_currentLineItem);
-
-                    return true;
-                }
-            }
-            else if (event->type() == QEvent::MouseMove) {
-                auto *e = static_cast<QMouseEvent*>(event);
-                if (e->buttons() & Qt::RightButton && m_currentLineItem) {
-                    QPointF p2 = view->mapToScene(e->pos());
-                    m_currentLineItem->setLine(QLineF(m_lineStart, p2));
-                    return true;
-                }
-            }
-            else if (event->type() == QEvent::MouseButtonRelease) {
-                auto *e = static_cast<QMouseEvent*>(event);
-                if (e->button() == Qt::RightButton && m_currentLineItem) {
-                    // Si la linea es casi un punto, la podemos eliminar
-                    QLineF line = m_currentLineItem->line();
-                    if (line.length() < 2.0) {
-                        scene->removeItem(m_currentLineItem);
-                        delete m_currentLineItem;
-                    }
-                    m_currentLineItem = nullptr;
-                    return true;
-                }
-            }
-        }
-        else if (m_eraserMode) {
+        if (m_eraserMode) {
             auto *e = static_cast<QMouseEvent*>(event);
             const bool rightPress =
                 (event->type() == QEvent::MouseButtonPress && e->button() == Qt::RightButton);
@@ -432,9 +382,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     if (auto *line = qgraphicsitem_cast<QGraphicsLineItem*>(hitItem)) {
                         scene->removeItem(line);
                         delete line;
-                        if (line == m_currentLineItem) {
-                            m_currentLineItem = nullptr;
-                        }
                         return true;
                     }
                 }
@@ -459,6 +406,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         }
         if (dibujos.drawPointMode()) {
             setDrawPointMode(false);
+            handled = true;
+        }
+        if (m_eraserMode && ui->actionborrador->isChecked()) {
+            ui->actionborrador->setChecked(false);
             handled = true;
         }
         if (handled) {

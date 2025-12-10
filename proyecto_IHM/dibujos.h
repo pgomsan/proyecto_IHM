@@ -44,7 +44,7 @@ private:
 
     QGraphicsLineItem *m_currentLineItem = nullptr;
     QColor m_lineColor = Qt::red;
-    QColor m_pointColor = QColor("#0066cc");
+    QColor m_pointColor = Qt::red;
     QPointF m_lineStart;
     QVector<QGraphicsEllipseItem*> m_pointItems;
     QVector<QPointF> m_pointCoordinates;
