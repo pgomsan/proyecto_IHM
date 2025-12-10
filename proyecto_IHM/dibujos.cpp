@@ -181,3 +181,22 @@ void Dibujos::addPointAt(const QPointF &scenePos)
     m_pointItems.append(pointItem);
     m_pointCoordinates.append(scenePos);
 }
+
+bool Dibujos::erasePointItem(QGraphicsItem *item)
+{
+    auto *point = qgraphicsitem_cast<QGraphicsEllipseItem*>(item);
+    if (!point) {
+        return false;
+    }
+
+    const int idx = m_pointItems.indexOf(point);
+    if (idx == -1) {
+        return false;
+    }
+
+    m_scene->removeItem(point);
+    delete point;
+    m_pointItems.removeAt(idx);
+    m_pointCoordinates.removeAt(idx);
+    return true;
+}
