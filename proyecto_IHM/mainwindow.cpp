@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QGraphicsLineItem>
 #include <QGraphicsItem>
 #include <QPointF>
 #include <QMenu>
@@ -26,9 +25,11 @@
 #include <QPoint>
 #include <QMouseEvent>
 #include <QRandomGenerator>
-#include <QStringList>
 #include <QSignalBlocker>
 #include <QColorDialog>
+#include <QGraphicsProxyWidget>
+#include <QToolButton>
+#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -97,6 +98,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->actioncompas->setChecked(false);
     ui->actiontransportador->setChecked(false); // empiezan ocultos
 
+    ui->actionpuntos_mapa->setCheckable(true);
+    connect(ui->actionpuntos_mapa, &QAction::toggled,
+            this, &MainWindow::on_actionpuntos_mapa_toggled);
+
     view->viewport()->installEventFilter(this);
 }
 
@@ -146,9 +151,20 @@ void MainWindow::on_actioncolores_triggered()
     dibujos.setPointColor(chosen);
 }
 
+void MainWindow::on_actionpuntos_mapa_toggled(bool checked)
+{
+    if (checked) {
+        showPointPopups();
+    } else {
+        clearPointPopups();
+    }
+}
+
 void MainWindow::on_actionreset_triggered()
 {
     dibujos.reset();
+    ui->actionpuntos_mapa->setChecked(false);
+    clearPointPopups();
 
     {
         const QSignalBlocker blocker(ui->actiondibujar_linea);
@@ -300,6 +316,97 @@ void MainWindow::openProblemDialog(const Problem &problem)
     dialog->show();
 }
 
+void MainWindow::showPointPopups()
+{
+    clearPointPopups();
+
+    const auto &points = dibujos.pointCoordinates();
+    for (int i = 0; i < points.size(); ++i) {
+        const QPointF &scenePos = points.at(i);
+        auto geo = dibujos.screenToGeo(scenePos.x(), scenePos.y());
+        const QString latStr = dibujos.formatDMS(geo.first, true);
+        const QString lonStr = dibujos.formatDMS(geo.second, false);
+
+        QWidget *card = new QWidget;
+        card->setAttribute(Qt::WA_StyledBackground, true);
+        card->setStyleSheet("background: rgba(255, 255, 255, 0.95);"
+                            "border: 1px solid #2d2d2d;"
+                            "border-radius: 8px;");
+
+        auto *layout = new QHBoxLayout(card);
+        layout->setContentsMargins(10, 8, 8, 8);
+        layout->setSpacing(10);
+
+        auto *label = new QLabel(tr("Punto %1\nLatitud: %2\nLongitud: %3")
+                                 .arg(i + 1)
+                                 .arg(latStr)
+                                 .arg(lonStr),
+                                 card);
+        label->setWordWrap(true);
+        label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        label->setStyleSheet("color: #1f1f1f; font-size: 65px; font-weight: 700; line-height: 1.3;");
+
+        auto *closeButton = new QToolButton(card);
+        closeButton->setText(QStringLiteral("x"));
+        closeButton->setToolTip(tr("Cerrar este punto"));
+        closeButton->setAutoRaise(true);
+        closeButton->setStyleSheet("color: #c00000; font-size: 28px; font-weight: 800;");
+
+        layout->addWidget(label);
+        layout->addWidget(closeButton, 0, Qt::AlignTop);
+
+        auto *proxy = scene->addWidget(card);
+        proxy->setZValue(30);
+        const QSize hint = card->sizeHint();
+        card->setMinimumSize(hint.width() , hint.height());
+        proxy->setFlag(QGraphicsItem::ItemIsSelectable, true);
+        proxy->setPos(scenePos + QPointF(20.0, -70.0));
+
+        connect(closeButton, &QToolButton::clicked, this, [this, proxy]() {
+            removePointPopup(proxy);
+        });
+
+        m_pointPopups.append(proxy);
+    }
+}
+
+void MainWindow::clearPointPopups()
+{
+    for (QGraphicsProxyWidget *popup : m_pointPopups) {
+        if (!popup) {
+            continue;
+        }
+        scene->removeItem(popup);
+        popup->deleteLater();
+    }
+    m_pointPopups.clear();
+}
+
+void MainWindow::removePointPopup(QGraphicsProxyWidget *popup)
+{
+    if (!popup) {
+        return;
+    }
+
+    scene->removeItem(popup);
+    m_pointPopups.removeOne(popup);
+    popup->deleteLater();
+
+    if (m_pointPopups.isEmpty() && ui->actionpuntos_mapa->isChecked()) {
+        ui->actionpuntos_mapa->blockSignals(true);
+        ui->actionpuntos_mapa->setChecked(false);
+        ui->actionpuntos_mapa->blockSignals(false);
+    }
+}
+
+void MainWindow::refreshPointPopups()
+{
+    if (ui->actionpuntos_mapa->isChecked()) {
+        showPointPopups();
+    }
+}
+
 // Dibujo de lineas con click derecho
 void MainWindow::setDrawLineMode(bool enabled)
 {
@@ -354,7 +461,7 @@ void MainWindow::setEraserMode(bool enabled)
 
         // Mantener el desplazamiento con click izquierdo, borrar con click derecho
         view->setDragMode(QGraphicsView::ScrollHandDrag);
-        view->setCursor(Qt::PointingHandCursor);
+
     } else {
         view->setDragMode(QGraphicsView::ScrollHandDrag);
         view->unsetCursor();
@@ -362,6 +469,8 @@ void MainWindow::setEraserMode(bool enabled)
 }
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
+    const int previousPointCount = dibujos.pointCoordinates().size();
+
     if (obj == view->viewport()) {
         if (m_eraserMode) {
             auto *e = static_cast<QMouseEvent*>(event);
@@ -379,12 +488,12 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     view->transform());
 
                 for (QGraphicsItem *hitItem : hitItems) {
-                    if (auto *line = qgraphicsitem_cast<QGraphicsLineItem*>(hitItem)) {
-                        scene->removeItem(line);
-                        delete line;
+                    if (dibujos.eraseLineItem(hitItem)) {
+                        refreshPointPopups();
                         return true;
                     }
                     if (dibujos.erasePointItem(hitItem)) {
+                        refreshPointPopups();
                         return true;
                     }
                 }
@@ -392,7 +501,14 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         }
     }
 
-    if (dibujos.handleEvent(obj, event)) {
+    const bool handled = dibujos.handleEvent(obj, event);
+
+    if (ui->actionpuntos_mapa->isChecked() &&
+            dibujos.pointCoordinates().size() != previousPointCount) {
+        showPointPopups();
+    }
+
+    if (handled) {
         return true;
     }
 

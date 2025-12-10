@@ -139,6 +139,8 @@ bool Dibujos::handleEvent(QObject *obj, QEvent *event)
                 if (line.length() < 2.0) {
                     m_scene->removeItem(m_currentLineItem);
                     delete m_currentLineItem;
+                } else {
+                    m_lineItems.append(m_currentLineItem);
                 }
                 m_currentLineItem = nullptr;
                 return true;
@@ -162,6 +164,12 @@ void Dibujos::reset()
     m_drawLineMode = false;
     m_drawPointMode = false;
     clearCurrentLine();
+
+    for (QGraphicsLineItem *line : m_lineItems) {
+        m_scene->removeItem(line);
+        delete line;
+    }
+    m_lineItems.clear();
 
     for (QGraphicsEllipseItem *point : m_pointItems) {
         m_scene->removeItem(point);
@@ -271,5 +279,23 @@ bool Dibujos::erasePointItem(QGraphicsItem *item)
     delete point;
     m_pointItems.removeAt(idx);
     m_pointCoordinates.removeAt(idx);
+    return true;
+}
+
+bool Dibujos::eraseLineItem(QGraphicsItem *item)
+{
+    auto *line = qgraphicsitem_cast<QGraphicsLineItem*>(item);
+    if (!line) {
+        return false;
+    }
+
+    const int idx = m_lineItems.indexOf(line);
+    if (idx == -1) {
+        return false;
+    }
+
+    m_scene->removeItem(line);
+    delete line;
+    m_lineItems.removeAt(idx);
     return true;
 }
