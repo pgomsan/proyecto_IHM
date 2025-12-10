@@ -55,6 +55,7 @@ private:
 
     // Dibujo de lineas
     bool m_drawLineMode = false;
+    bool m_eraserMode = false;
     QGraphicsLineItem *m_currentLineItem = nullptr;
     QPointF m_lineStart;
     QColor m_lineColor = Qt::red;
@@ -66,6 +67,7 @@ private:
     void setProtractorVisible(bool visible);
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
+    void setEraserMode(bool enabled);
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar
