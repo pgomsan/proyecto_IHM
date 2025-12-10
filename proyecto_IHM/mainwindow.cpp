@@ -17,6 +17,8 @@
 #include <QGraphicsView>
 #include <QGraphicsLineItem>
 #include <QGraphicsItem>
+#include <QColorDialog>
+#include <QPen>
 #include <QPointF>
 #include <QMenu>
 #include <QKeyEvent>
@@ -115,6 +117,23 @@ void MainWindow::applyZoom()
 {
     view->resetTransform();
     view->scale(currentZoom, currentZoom);
+}
+
+void MainWindow::on_actioncolores_triggered()
+{
+    const QColor chosen = QColorDialog::getColor(m_lineColor, this, tr("Selecciona un color"));
+    if (!chosen.isValid()) {
+        return;
+    }
+
+    m_lineColor = chosen;
+
+    // Si hay una linea en progreso, actualizamos su color tambien
+    if (m_currentLineItem) {
+        QPen pen = m_currentLineItem->pen();
+        pen.setColor(m_lineColor);
+        m_currentLineItem->setPen(pen);
+    }
 }
 
 void MainWindow::on_actionreset_triggered()
@@ -255,7 +274,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 // Punto inicial de la linea en coordenadas de escena
                 m_lineStart = view->mapToScene(e->pos());
 
-                QPen pen(Qt::red, 8);
+                QPen pen(m_lineColor, 8);
                 m_currentLineItem = new QGraphicsLineItem();
                 m_currentLineItem->setZValue(10);
                 m_currentLineItem->setPen(pen);
