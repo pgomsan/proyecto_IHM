@@ -33,6 +33,8 @@ qt_add_executable(proyecto_IHM
     navdb/navigationdao.cpp
     tool.cpp
     tool.h
+    dibujos.cpp
+    dibujos.h
 )
 
 target_include_directories(proyecto_IHM

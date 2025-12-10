@@ -15,22 +15,21 @@
 #include <algorithm>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QGraphicsLineItem>
-#include <QGraphicsItem>
-#include <QColorDialog>
-#include <QPen>
-#include <QPointF>
 #include <QMenu>
 #include <QKeyEvent>
 #include <QEvent>
 #include <QPoint>
 #include <QMouseEvent>
+#include <QPointF>
+#include <QStringList>
+#include <QSignalBlocker>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow),
       scene(new QGraphicsScene(this)),
       view(new QGraphicsView(this)),
+      dibujos(scene, view),
       userAgent(Navigation::instance())
 {
     ui->setupUi(this);
@@ -60,6 +59,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->toolBar->setFloatable(false);
 
     // Configuracion de dibujos
+    // Punto
+    ui->actiondibujar_punto->setCheckable(true);
+    connect(ui->actiondibujar_punto, &QAction::toggled,
+            this, &MainWindow::setDrawPointMode);
     // Linea
     ui->actiondibujar_linea->setCheckable(true);
     connect(ui->actiondibujar_linea, &QAction::toggled,
@@ -81,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->actionregla->setChecked(false);
     ui->actioncompas->setChecked(false);
-    ui->actiontransportador->setChecked(false); // empieza oculto
+    ui->actiontransportador->setChecked(false); // empiezan ocultos
 
     view->viewport()->installEventFilter(this);
 }
@@ -138,16 +141,16 @@ void MainWindow::on_actioncolores_triggered()
 
 void MainWindow::on_actionreset_triggered()
 {
-    setDrawLineMode(false);
+    dibujos.reset();
 
-    const auto itemsCopy = scene->items();
-    for (QGraphicsItem *item : itemsCopy) {
-        if (qgraphicsitem_cast<QGraphicsLineItem*>(item)) {
-            scene->removeItem(item);
-            delete item;
-        }
+    {
+        const QSignalBlocker blocker(ui->actiondibujar_linea);
+        ui->actiondibujar_linea->setChecked(false);
     }
-    m_currentLineItem = nullptr;
+    {
+        const QSignalBlocker blocker(ui->actiondibujar_punto);
+        ui->actiondibujar_punto->setChecked(false);
+    }
 }
 
 // Update del icono del usuario
@@ -243,82 +246,81 @@ void MainWindow::handleRegisterRequested()
     dialog.exec();
 }
 
-// Dibujo de lineas con click derecho
 void MainWindow::setDrawLineMode(bool enabled)
 {
-    m_drawLineMode = enabled;
+    dibujos.setDrawLineMode(enabled);
 
-    if (m_drawLineMode) {
-        view->setDragMode(QGraphicsView::NoDrag);
-        view->setCursor(Qt::CrossCursor);
-    } else {
-        view->setDragMode(QGraphicsView::ScrollHandDrag);
-        view->unsetCursor();
-
-        if (m_currentLineItem) {
-            scene->removeItem(m_currentLineItem);
-            delete m_currentLineItem;
-            m_currentLineItem = nullptr;
-        }
-        if (ui->actiondibujar_linea->isChecked())
-            ui->actiondibujar_linea->setChecked(false);
+    if (!dibujos.drawPointMode() && ui->actiondibujar_punto->isChecked()) {
+        const QSignalBlocker blocker(ui->actiondibujar_punto);
+        ui->actiondibujar_punto->setChecked(false);
     }
+
+    const QSignalBlocker blocker(ui->actiondibujar_linea);
+    ui->actiondibujar_linea->setChecked(dibujos.drawLineMode());
+}
+
+void MainWindow::setDrawPointMode(bool enabled)
+{
+    dibujos.setDrawPointMode(enabled);
+
+    if (!dibujos.drawLineMode() && ui->actiondibujar_linea->isChecked()) {
+        const QSignalBlocker blocker(ui->actiondibujar_linea);
+        ui->actiondibujar_linea->setChecked(false);
+    }
+
+    const QSignalBlocker blocker(ui->actiondibujar_punto);
+    ui->actiondibujar_punto->setChecked(dibujos.drawPointMode());
 }
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-    if (obj == view->viewport() && m_drawLineMode) {
-        // Solo interceptamos eventos cuando estamos en modo dibujar linea
-        if (event->type() == QEvent::MouseButtonPress) {
-            auto *e = static_cast<QMouseEvent*>(event);
-            if (e->button() == Qt::RightButton) {
-                // Punto inicial de la linea en coordenadas de escena
-                m_lineStart = view->mapToScene(e->pos());
-
-                QPen pen(m_lineColor, 8);
-                m_currentLineItem = new QGraphicsLineItem();
-                m_currentLineItem->setZValue(10);
-                m_currentLineItem->setPen(pen);
-                m_currentLineItem->setLine(QLineF(m_lineStart, m_lineStart));
-                scene->addItem(m_currentLineItem);
-
-                return true;
-            }
-        }
-        else if (event->type() == QEvent::MouseMove) {
-            auto *e = static_cast<QMouseEvent*>(event);
-            if (e->buttons() & Qt::RightButton && m_currentLineItem) {
-                QPointF p2 = view->mapToScene(e->pos());
-                m_currentLineItem->setLine(QLineF(m_lineStart, p2));
-                return true;
-            }
-        }
-        else if (event->type() == QEvent::MouseButtonRelease) {
-            auto *e = static_cast<QMouseEvent*>(event);
-            if (e->button() == Qt::RightButton && m_currentLineItem) {
-                // Si la linea es casi un punto, la podemos eliminar
-                QLineF line = m_currentLineItem->line();
-                if (line.length() < 2.0) {
-                    scene->removeItem(m_currentLineItem);
-                    delete m_currentLineItem;
-                }
-                m_currentLineItem = nullptr;
-                return true;
-            }
-        }
+    if (dibujos.handleEvent(obj, event)) {
+        return true;
     }
 
     return QMainWindow::eventFilter(obj, event);
 }
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Escape && m_drawLineMode) {
-        // Salir del modo dibujo si esta activo
-        setDrawLineMode(false);
-        event->accept();
-        return;
+    if (event->key() == Qt::Key_Escape) {
+        bool handled = false;
+        if (dibujos.drawLineMode()) {
+            setDrawLineMode(false);
+            handled = true;
+        }
+        if (dibujos.drawPointMode()) {
+            setDrawPointMode(false);
+            handled = true;
+        }
+        if (handled) {
+            // Salir del modo dibujo si esta activo
+            event->accept();
+            return;
+        }
     }
 
     QMainWindow::keyPressEvent(event);
+}
+
+void MainWindow::on_actionpuntos_mapa_triggered()
+{
+    const auto &coords = dibujos.pointCoordinates();
+    if (coords.isEmpty()) {
+        QMessageBox::information(this, tr("Puntos"), tr("No hay puntos guardados."));
+        return;
+    }
+
+    QStringList lines;
+    for (int i = 0; i < coords.size(); ++i) {
+        const QPointF &p = coords.at(i);
+        lines << tr("Punto %1: X=%2, Y=%3")
+                 .arg(i + 1)
+                 .arg(p.x(), 0, 'f', 1)
+                 .arg(p.y(), 0, 'f', 1);
+    }
+
+    QMessageBox::information(this,
+                             tr("Puntos en el mapa"),
+                             lines.join("\n"));
 }
 
 // Llamadas a tools.h para mostrar las herramientas
