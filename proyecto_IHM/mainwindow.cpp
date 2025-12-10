@@ -122,6 +122,23 @@ void MainWindow::applyZoom()
     view->scale(currentZoom, currentZoom);
 }
 
+void MainWindow::on_actioncolores_triggered()
+{
+    const QColor chosen = QColorDialog::getColor(m_lineColor, this, tr("Selecciona un color"));
+    if (!chosen.isValid()) {
+        return;
+    }
+
+    m_lineColor = chosen;
+
+    // Si hay una linea en progreso, actualizamos su color tambien
+    if (m_currentLineItem) {
+        QPen pen = m_currentLineItem->pen();
+        pen.setColor(m_lineColor);
+        m_currentLineItem->setPen(pen);
+    }
+}
+
 void MainWindow::on_actionreset_triggered()
 {
     dibujos.reset();

@@ -6,6 +6,7 @@
 #include <QGraphicsScene>
 #include <QString>
 #include <QPoint>
+#include <QColor>
 #include "useragent.h"
 #include "profiledialog.h"
 #include "tool.h"
@@ -32,6 +33,7 @@ private slots:
     void on_actionzoom_out_triggered();
     void on_actionmenu_usuario_triggered();
     void on_actionreset_triggered();
+    void on_actioncolores_triggered();
 
 
     void setDrawPointMode(bool enabled);
