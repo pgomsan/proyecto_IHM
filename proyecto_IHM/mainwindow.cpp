@@ -119,10 +119,13 @@ void MainWindow::applyZoom()
 // Update del icono del usuario
 void MainWindow::updateUserActionIcon()
 {
-    const char *iconPath = userAgent.isLoggedIn()
+    const bool loggedIn = userAgent.isLoggedIn();
+    const char *iconPath = loggedIn
             ? ":/icons/user-silhouette.png"
             : ":/icons/user-silhouette-question.png";
     ui->actionmenu_usuario->setIcon(QIcon(QString::fromUtf8(iconPath)));
+    ui->actionhistorial->setEnabled(loggedIn);
+    ui->actionMiMenu_preguntas->setEnabled(loggedIn);
 }
 //Registro de usuario
 void MainWindow::on_actionmenu_usuario_triggered()
