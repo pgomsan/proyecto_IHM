@@ -10,6 +10,7 @@
 #include "useragent.h"
 #include "profiledialog.h"
 #include "tool.h"
+#include "dibujos.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -35,17 +36,18 @@ private slots:
     void on_actioncolores_triggered();
 
 
-
-
+    void setDrawPointMode(bool enabled);
     void setDrawLineMode(bool enabled);
 
     void handleLoginRequested(const QString &username, const QString &password);
     void handleRegisterRequested();
+    void on_actionpuntos_mapa_triggered();
 
 private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     QGraphicsView *view;
+    Dibujos dibujos;
     UserAgent userAgent;
     void applyZoom();
     void updateUserActionIcon();
@@ -68,6 +70,7 @@ private:
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
     void setEraserMode(bool enabled);
+    void addPointAt(const QPointF &scenePos);
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar
