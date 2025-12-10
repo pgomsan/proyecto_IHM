@@ -48,7 +48,7 @@ private slots:
 
     void handleLoginRequested(const QString &username, const QString &password);
     void handleRegisterRequested();
-    void on_actionpuntos_mapa_triggered();
+
 
 private:
     Ui::MainWindow *ui;
