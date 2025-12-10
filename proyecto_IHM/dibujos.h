@@ -30,6 +30,7 @@ public:
     void reset();
 
     const QVector<QPointF> &pointCoordinates() const { return m_pointCoordinates; }
+    bool erasePointItem(QGraphicsItem *item);
 
 private:
     void refreshInteractionMode();

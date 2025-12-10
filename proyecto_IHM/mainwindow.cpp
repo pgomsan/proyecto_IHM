@@ -384,6 +384,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                         delete line;
                         return true;
                     }
+                    if (dibujos.erasePointItem(hitItem)) {
+                        return true;
+                    }
                 }
             }
         }
