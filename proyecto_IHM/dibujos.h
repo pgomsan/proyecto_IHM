@@ -7,21 +7,35 @@
 #include <QGraphicsEllipseItem>
 #include <QColor>
 #include <QPointF>
+#include <utility>
+
+#include <QChar>
+#include <QString>
 #include <QVector>
 
 class QObject;
 class QEvent;
+class QGraphicsItem;
+
+struct DMS {
+    int degrees;
+    int minutes;
+    double seconds;
+    QChar hemisphere;
+};
 
 class Dibujos
 {
 public:
     Dibujos(QGraphicsScene *scene, QGraphicsView *view);
-
+    DMS decimalToDMS(double value, bool isLatitude);
+    QString formatDMS(double value, bool isLatitude);
     void setDrawLineMode(bool enabled);
     void setDrawPointMode(bool enabled);
     bool drawLineMode() const { return m_drawLineMode; }
     bool drawPointMode() const { return m_drawPointMode; }
     void setLineColor(const QColor &color);
+    std::pair<double,double> screenToGeo(double pos_x, double pos_y);
     void setPointColor(const QColor &color);
     QColor lineColor() const { return m_lineColor; }
     QColor pointColor() const { return m_pointColor; }
