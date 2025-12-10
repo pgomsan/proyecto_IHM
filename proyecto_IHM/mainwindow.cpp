@@ -16,6 +16,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QGraphicsLineItem>
+#include <QGraphicsItem>
 #include <QPointF>
 #include <QMenu>
 #include <QKeyEvent>
@@ -114,6 +115,20 @@ void MainWindow::applyZoom()
 {
     view->resetTransform();
     view->scale(currentZoom, currentZoom);
+}
+
+void MainWindow::on_actionreset_triggered()
+{
+    setDrawLineMode(false);
+
+    const auto itemsCopy = scene->items();
+    for (QGraphicsItem *item : itemsCopy) {
+        if (qgraphicsitem_cast<QGraphicsLineItem*>(item)) {
+            scene->removeItem(item);
+            delete item;
+        }
+    }
+    m_currentLineItem = nullptr;
 }
 
 // Update del icono del usuario

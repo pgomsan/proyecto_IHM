@@ -30,6 +30,7 @@ private slots:
     void on_actionzoom_in_triggered();
     void on_actionzoom_out_triggered();
     void on_actionmenu_usuario_triggered();
+    void on_actionreset_triggered();
 
 
 
