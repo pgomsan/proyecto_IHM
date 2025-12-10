@@ -28,6 +28,7 @@
    <addaction name="actionmenu_usuario"/>
    <addaction name="actionhistorial"/>
    <addaction name="actionMiMenu_preguntas"/>
+   <addaction name="actionPregunta_aleatoria"/>
    <addaction name="separator"/>
    <addaction name="actionzoom_in"/>
    <addaction name="actionzoom_out"/>
@@ -102,7 +103,10 @@
      <normaloff>:/icons/notebook--pencil.png</normaloff>:/icons/notebook--pencil.png</iconset>
    </property>
    <property name="text">
-    <string>MiMenu_preguntas</string>
+    <string>Preguntas</string>
+   </property>
+   <property name="toolTip">
+    <string>Preguntas</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -247,6 +251,18 @@
    </property>
    <property name="iconVisibleInMenu">
     <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionPregunta_aleatoria">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/arrow-switch.png</normaloff>:/icons/arrow-switch.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pregunta aleatoria</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>

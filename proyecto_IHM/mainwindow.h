@@ -17,6 +17,8 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class QMenu;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -33,6 +35,11 @@ private slots:
     void on_actionmenu_usuario_triggered();
     void on_actionreset_triggered();
     void on_actioncolores_triggered();
+    void on_actionMiMenu_preguntas_triggered();
+    void on_actionPregunta_aleatoria_triggered();
+    void showRandomProblem();
+    void openQuestionBank();
+    void openProblemDialog(const Problem &problem);
 
 
 
