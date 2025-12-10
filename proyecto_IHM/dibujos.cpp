@@ -43,6 +43,38 @@ void Dibujos::setDrawPointMode(bool enabled)
     refreshInteractionMode();
 }
 
+void Dibujos::setLineColor(const QColor &color)
+{
+    if (!color.isValid()) {
+        return;
+    }
+
+    m_lineColor = color;
+
+    if (m_currentLineItem) {
+        QPen pen = m_currentLineItem->pen();
+        pen.setColor(m_lineColor);
+        m_currentLineItem->setPen(pen);
+    }
+}
+
+void Dibujos::setPointColor(const QColor &color)
+{
+    if (!color.isValid()) {
+        return;
+    }
+
+    m_pointColor = color;
+
+    for (QGraphicsEllipseItem *point : m_pointItems) {
+        if (!point) {
+            continue;
+        }
+        point->setPen(QPen(m_pointColor, point->pen().widthF()));
+        point->setBrush(QBrush(m_pointColor));
+    }
+}
+
 bool Dibujos::handleEvent(QObject *obj, QEvent *event)
 {
     if (!m_view || !m_scene || obj != m_view->viewport()) {
@@ -55,7 +87,7 @@ bool Dibujos::handleEvent(QObject *obj, QEvent *event)
             if (e->button() == Qt::RightButton) {
                 m_lineStart = m_view->mapToScene(e->pos());
 
-                QPen pen(Qt::red, 8);
+                QPen pen(m_lineColor, 8);
                 m_currentLineItem = new QGraphicsLineItem();
                 m_currentLineItem->setZValue(10);
                 m_currentLineItem->setPen(pen);
@@ -138,8 +170,8 @@ void Dibujos::clearCurrentLine()
 void Dibujos::addPointAt(const QPointF &scenePos)
 {
     static const qreal kRadius = tamaño_punto;
-    QPen pen(QColor("#0066cc"), 2.0);
-    QBrush brush(QColor("#0066cc"));
+    QPen pen(m_pointColor, 2.0);
+    QBrush brush(m_pointColor);
 
     auto *pointItem = m_scene->addEllipse(scenePos.x() - kRadius,
                                           scenePos.y() - kRadius,

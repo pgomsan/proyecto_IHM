@@ -5,6 +5,7 @@
 #include <QGraphicsView>
 #include <QGraphicsLineItem>
 #include <QGraphicsEllipseItem>
+#include <QColor>
 #include <QPointF>
 #include <QVector>
 
@@ -20,6 +21,10 @@ public:
     void setDrawPointMode(bool enabled);
     bool drawLineMode() const { return m_drawLineMode; }
     bool drawPointMode() const { return m_drawPointMode; }
+    void setLineColor(const QColor &color);
+    void setPointColor(const QColor &color);
+    QColor lineColor() const { return m_lineColor; }
+    QColor pointColor() const { return m_pointColor; }
 
     bool handleEvent(QObject *obj, QEvent *event);
     void reset();
@@ -38,6 +43,8 @@ private:
     bool m_drawPointMode = false;
 
     QGraphicsLineItem *m_currentLineItem = nullptr;
+    QColor m_lineColor = Qt::red;
+    QColor m_pointColor = QColor("#0066cc");
     QPointF m_lineStart;
     QVector<QGraphicsEllipseItem*> m_pointItems;
     QVector<QPointF> m_pointCoordinates;
