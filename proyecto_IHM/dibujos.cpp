@@ -1,4 +1,6 @@
 #include "dibujos.h"
+#include <utility>
+#include <cmath>
 
 #include <QEvent>
 #include <QGraphicsItem>
@@ -9,6 +11,46 @@
 #include <QObject>
 
 double tamaño_punto = 15.0;
+
+
+DMS Dibujos::decimalToDMS(double value, bool isLatitude)
+{
+    DMS dms;
+
+    // Hemisferio
+    if (isLatitude)
+        dms.hemisphere = (value >= 0.0) ? QChar('N') : QChar('S');
+    else
+        dms.hemisphere = (value >= 0.0) ? QChar('E') : QChar('W');
+
+    // Valor absoluto para el cálculo
+    double absVal = std::fabs(value);
+
+    // Grados
+    dms.degrees = static_cast<int>(absVal);
+
+    // Minutos
+    double minutesFull = (absVal - dms.degrees) * 60.0;
+    dms.minutes = static_cast<int>(minutesFull);
+
+    // Segundos
+    dms.seconds = (minutesFull - dms.minutes) * 60.0;
+
+    return dms;
+}
+QString Dibujos::formatDMS(double value, bool isLatitude)
+{
+    DMS d = decimalToDMS(value, isLatitude);
+
+    // anchura: lat 2 dígitos, lon 3
+    int degWidth = isLatitude ? 2 : 3;
+
+    return QString("%1° %2' %3\" %4")
+        .arg(d.degrees, degWidth, 10, QLatin1Char('0'))   // grados con ceros delante
+        .arg(d.minutes, 2, 10, QLatin1Char('0'))          // minutos 2 dígitos
+        .arg(d.seconds, 0, 'f', 2)                       // segundos con 2 decimales
+        .arg(d.hemisphere);
+}
 
 Dibujos::Dibujos(QGraphicsScene *scene, QGraphicsView *view)
     : m_scene(scene)
@@ -159,11 +201,46 @@ void Dibujos::clearCurrentLine()
     }
 }
 
+std::pair<double,double> Dibujos::screenToGeo(double pos_x, double pos_y)
+{
+    //Coordenadas de la imagen del mapa en pantalla
+    const double x_min = 321.0;
+    const double x_max = 8369.0;
+    const double y_min = 437.0;
+    const double y_max = 5332.8;
+
+    //Coordenadas geográficas reales del mapa
+
+    const double lat_top    = 36.20;
+    const double lat_bottom = 35.60;
+    const double lon_left   = -6.40;
+    const double lon_right  = -4.90;
+
+    // Tamaño total
+    double map_width  = x_max - x_min;
+    double map_height = y_max - y_min;
+
+    // Normalización a coordenadas [0,1]
+    double u = (pos_x - x_min) / map_width;
+    double v = (pos_y - y_min) / map_height;
+
+    // Interpolación geográfica
+    double lon = lon_left + u * (lon_right - lon_left);
+    double lat = lat_top - v * (lat_top - lat_bottom);
+
+    return {lat, lon};
+}
+
 void Dibujos::addPointAt(const QPointF &scenePos)
 {
     static const qreal kRadius = tamaño_punto;
     QPen pen(m_pointColor, 2.0);
     QBrush brush(m_pointColor);
+
+    auto [lat, lon] = screenToGeo(scenePos.x(), scenePos.y());
+
+    QString latStr = formatDMS(lat,  true);  // true  = es latitud
+    QString lonStr = formatDMS(lon, false);  // false = es longitud
 
     auto *pointItem = m_scene->addEllipse(scenePos.x() - kRadius,
                                           scenePos.y() - kRadius,
@@ -173,14 +250,15 @@ void Dibujos::addPointAt(const QPointF &scenePos)
                                           brush);
     pointItem->setZValue(12);
     pointItem->setToolTip(
-                QObject::tr("Punto %1\nX: %2\nY: %3")
-                .arg(m_pointCoordinates.size() + 1)
-                .arg(scenePos.x(), 0, 'f', 1)
-                .arg(scenePos.y(), 0, 'f', 1));
+        QObject::tr("Punto %1\nLatitud = %2\nLongitud = %3")
+            .arg(m_pointCoordinates.size() + 1)
+            .arg(latStr)
+            .arg(lonStr));
 
     m_pointItems.append(pointItem);
     m_pointCoordinates.append(scenePos);
 }
+
 
 bool Dibujos::erasePointItem(QGraphicsItem *item)
 {
