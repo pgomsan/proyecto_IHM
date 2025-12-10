@@ -21,7 +21,6 @@ struct DMS {
     int degrees;
     int minutes;
     double seconds;
-    QChar hemisphere;
 };
 
 class Dibujos
@@ -45,6 +44,7 @@ public:
 
     const QVector<QPointF> &pointCoordinates() const { return m_pointCoordinates; }
     bool erasePointItem(QGraphicsItem *item);
+    bool eraseLineItem(QGraphicsItem *item);
 
 private:
     void refreshInteractionMode();
@@ -62,6 +62,7 @@ private:
     QColor m_pointColor = Qt::red;
     QPointF m_lineStart;
     QVector<QGraphicsEllipseItem*> m_pointItems;
+    QVector<QGraphicsLineItem*> m_lineItems;
     QVector<QPointF> m_pointCoordinates;
 };
 

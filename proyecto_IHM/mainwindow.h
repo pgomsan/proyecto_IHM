@@ -2,11 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QGraphicsView>
-#include <QGraphicsScene>
 #include <QString>
-#include <QPoint>
-#include <QColor>
+#include <QVector>
 #include "useragent.h"
 #include "profiledialog.h"
 #include "tool.h"
@@ -18,7 +15,10 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class QGraphicsScene;
+class QGraphicsView;
 class QMenu;
+class QGraphicsProxyWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -38,6 +38,7 @@ private slots:
     void on_actioncolores_triggered();
     void on_actionMiMenu_preguntas_triggered();
     void on_actionPregunta_aleatoria_triggered();
+    void on_actionpuntos_mapa_toggled(bool checked);
     void showRandomProblem();
     void openQuestionBank();
     void openProblemDialog(const Problem &problem);
@@ -73,6 +74,11 @@ private:
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
     void setEraserMode(bool enabled);
+    void showPointPopups();
+    void clearPointPopups();
+    void removePointPopup(QGraphicsProxyWidget *popup);
+    void refreshPointPopups();
+    QVector<QGraphicsProxyWidget*> m_pointPopups;
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar
