@@ -154,6 +154,7 @@ void MainWindow::on_actionmenu_usuario_triggered()
         });
         connect(&dialog, &ProfileDialog::logoutRequested, this, [this]() {
             userAgent.logout();
+            updateUserActionIcon();
             QMessageBox::information(this, tr("Sesion"), tr("Has cerrado sesion."));
         });
         dialog.exec();
