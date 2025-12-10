@@ -55,6 +55,13 @@ private:
     static constexpr double kMinZoom = 0.09;
     static constexpr double kMaxZoom = 1.0;
 
+    // Dibujo de lineas
+    bool m_drawLineMode = false;
+    bool m_eraserMode = false;
+    QGraphicsLineItem *m_currentLineItem = nullptr;
+    QPointF m_lineStart;
+    QColor m_lineColor = Qt::red;
+
     // Display de herramientas
     Tool* m_protractor = nullptr;
     Tool* m_ruler = nullptr;
@@ -62,6 +69,7 @@ private:
     void setProtractorVisible(bool visible);
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
+    void setEraserMode(bool enabled);
     void addPointAt(const QPointF &scenePos);
 
 protected:
