@@ -4,6 +4,9 @@
 #include <QMainWindow>
 #include <QString>
 #include <QVector>
+#include <QColor>
+#include <QPoint>
+#include <QSize>
 #include "useragent.h"
 #include "profiledialog.h"
 #include "tool.h"
@@ -19,6 +22,8 @@ class QGraphicsScene;
 class QGraphicsView;
 class QMenu;
 class QGraphicsProxyWidget;
+class QTextEdit;
+class QWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -42,6 +47,8 @@ private slots:
     void showRandomProblem();
     void openQuestionBank();
     void openProblemDialog(const Problem &problem);
+    void setAddTextMode(bool enabled);
+    void onSceneSelectionChanged();
 
 
     void setDrawPointMode(bool enabled);
@@ -74,6 +81,29 @@ private:
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
     void setEraserMode(bool enabled);
+    void clearTextBoxes();
+    void selectTextBox(QGraphicsProxyWidget *proxy);
+    QGraphicsProxyWidget *createTextBoxAt(const QPointF &scenePos);
+    struct TextBoxWidgets {
+        QGraphicsProxyWidget *proxy = nullptr;
+        QWidget *container = nullptr;
+        QTextEdit *editor = nullptr;
+        bool resizing = false;
+        QPoint resizeStartPos;
+        QSize resizeStartSize;
+        double resizeStartFontSize = 16.0;
+    };
+    QVector<TextBoxWidgets> m_textBoxes;
+    QGraphicsProxyWidget *m_activeTextBox = nullptr;
+    QColor m_textColor = Qt::black;
+    bool m_addTextMode = false;
+    bool m_rightDragInProgress = false;
+    bool m_textPlacementPending = false;
+    QPoint m_lastRightDragPos;
+    TextBoxWidgets *findTextBox(QGraphicsProxyWidget *proxy);
+    TextBoxWidgets *findTextBox(QWidget *container);
+    void applyColorToActiveText(const QColor &color);
+    void markAddTextInactive();
     void showPointPopups();
     void clearPointPopups();
     void removePointPopup(QGraphicsProxyWidget *popup);

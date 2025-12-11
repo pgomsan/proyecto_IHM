@@ -30,6 +30,14 @@
 #include <QGraphicsProxyWidget>
 #include <QToolButton>
 #include <QLabel>
+#include <QTextEdit>
+#include <QScrollBar>
+#include <QTextCursor>
+#include <QFrame>
+#include <QSizePolicy>
+#include <QTextCharFormat>
+#include <QCursor>
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -102,6 +110,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionpuntos_mapa, &QAction::toggled,
             this, &MainWindow::on_actionpuntos_mapa_toggled);
 
+    ui->actionanadir_texto->setCheckable(true);
+    connect(ui->actionanadir_texto, &QAction::toggled,
+            this, &MainWindow::setAddTextMode);
+
+    connect(scene, &QGraphicsScene::selectionChanged,
+            this, &MainWindow::onSceneSelectionChanged);
+
     view->viewport()->installEventFilter(this);
 }
 
@@ -149,6 +164,8 @@ void MainWindow::on_actioncolores_triggered()
 
     dibujos.setLineColor(chosen);
     dibujos.setPointColor(chosen);
+    m_textColor = chosen;
+    applyColorToActiveText(chosen);
 }
 
 void MainWindow::on_actionpuntos_mapa_toggled(bool checked)
@@ -163,6 +180,8 @@ void MainWindow::on_actionpuntos_mapa_toggled(bool checked)
 void MainWindow::on_actionreset_triggered()
 {
     dibujos.reset();
+    clearTextBoxes();
+    markAddTextInactive();
     ui->actionpuntos_mapa->setChecked(false);
     clearPointPopups();
 
@@ -316,6 +335,195 @@ void MainWindow::openProblemDialog(const Problem &problem)
     dialog->show();
 }
 
+void MainWindow::setAddTextMode(bool enabled)
+{
+    m_addTextMode = enabled;
+    m_textPlacementPending = false;
+    m_rightDragInProgress = false;
+
+    if (enabled) {
+        // Desactivar otros modos que usan el click derecho
+        if (ui->actiondibujar_linea->isChecked()) {
+            const QSignalBlocker blocker(ui->actiondibujar_linea);
+            ui->actiondibujar_linea->setChecked(false);
+        }
+        if (ui->actiondibujar_punto->isChecked()) {
+            const QSignalBlocker blocker(ui->actiondibujar_punto);
+            ui->actiondibujar_punto->setChecked(false);
+        }
+        dibujos.setDrawLineMode(false);
+        dibujos.setDrawPointMode(false);
+
+        if (ui->actionborrador->isChecked()) {
+            const QSignalBlocker blocker(ui->actionborrador);
+            ui->actionborrador->setChecked(false);
+        }
+        m_eraserMode = false;
+
+        view->setDragMode(QGraphicsView::ScrollHandDrag);
+        view->unsetCursor();
+    }
+}
+
+void MainWindow::markAddTextInactive()
+{
+    if (ui->actionanadir_texto->isChecked()) {
+        const QSignalBlocker blocker(ui->actionanadir_texto);
+        ui->actionanadir_texto->setChecked(false);
+    }
+    m_addTextMode = false;
+    m_textPlacementPending = false;
+    m_rightDragInProgress = false;
+}
+
+MainWindow::TextBoxWidgets *MainWindow::findTextBox(QGraphicsProxyWidget *proxy)
+{
+    if (!proxy) {
+        return nullptr;
+    }
+
+    for (auto &box : m_textBoxes) {
+        if (box.proxy == proxy) {
+            return &box;
+        }
+    }
+    return nullptr;
+}
+
+MainWindow::TextBoxWidgets *MainWindow::findTextBox(QWidget *container)
+{
+    if (!container) {
+        return nullptr;
+    }
+
+    for (auto &box : m_textBoxes) {
+        if (box.container == container) {
+            return &box;
+        }
+    }
+    return nullptr;
+}
+
+void MainWindow::selectTextBox(QGraphicsProxyWidget *proxy)
+{
+    m_activeTextBox = proxy;
+
+    for (auto &box : m_textBoxes) {
+        const bool isActive = (box.proxy == proxy);
+        const QString borderColor = isActive ? "#0060d9" : "transparent";
+        if (box.container) {
+            box.container->setStyleSheet(QStringLiteral(
+                "background: transparent;"
+                "border: 1px dashed %1;"
+                "border-radius: 6px;"
+                "padding: 4px;")
+                .arg(borderColor));
+        }
+        if (isActive && box.editor) {
+            box.editor->setTextColor(m_textColor);
+            box.editor->setFocus();
+        }
+    }
+}
+
+void MainWindow::applyColorToActiveText(const QColor &color)
+{
+    if (!m_activeTextBox || !color.isValid()) {
+        return;
+    }
+
+    TextBoxWidgets *box = findTextBox(m_activeTextBox);
+    if (!box || !box->editor) {
+        return;
+    }
+
+    QTextCursor cursor = box->editor->textCursor();
+    cursor.select(QTextCursor::Document);
+
+    QTextCharFormat fmt;
+    fmt.setForeground(color);
+    cursor.mergeCharFormat(fmt);
+    box->editor->mergeCurrentCharFormat(fmt);
+    cursor.clearSelection();
+    box->editor->setTextCursor(cursor);
+}
+
+QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
+{
+    auto *container = new QWidget;
+    container->setAttribute(Qt::WA_StyledBackground, true);
+    container->setAttribute(Qt::WA_TranslucentBackground, true);
+    container->setStyleSheet("background: transparent;"
+                             "border: 1px dashed transparent;"
+                             "border-radius: 6px;"
+                             "padding: 4px;");
+    container->setMinimumSize(140, 90);
+    container->installEventFilter(this);
+
+    auto *layout = new QVBoxLayout(container);
+    layout->setContentsMargins(6, 6, 6, 6);
+    layout->setSpacing(4);
+
+    auto *editor = new QTextEdit(container);
+    editor->setPlaceholderText(tr("Introduce un texto..."));
+    editor->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    editor->setMinimumSize(120, 70);
+    editor->setFrameShape(QFrame::NoFrame);
+    editor->setTextColor(m_textColor);
+    editor->setStyleSheet("background: transparent;");
+    editor->setFontPointSize(16.0);
+
+    layout->addWidget(editor);
+
+    container->resize(260, 170);
+
+    auto *proxy = scene->addWidget(container);
+    proxy->setZValue(35);
+    proxy->setFlag(QGraphicsItem::ItemIsMovable, true);
+    proxy->setFlag(QGraphicsItem::ItemIsSelectable, true);
+    proxy->setFlag(QGraphicsItem::ItemIsFocusable, true);
+    proxy->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+    proxy->setPos(scenePos);
+    proxy->resize(container->size());
+
+    m_textBoxes.append(TextBoxWidgets{
+        proxy,
+        container,
+        editor
+    });
+
+    selectTextBox(proxy);
+    editor->setFocus();
+    return proxy;
+}
+
+void MainWindow::clearTextBoxes()
+{
+    for (const auto &box : m_textBoxes) {
+        if (box.proxy) {
+            scene->removeItem(box.proxy);
+            box.proxy->deleteLater();
+        }
+    }
+    m_textBoxes.clear();
+    m_activeTextBox = nullptr;
+}
+
+void MainWindow::onSceneSelectionChanged()
+{
+    const auto selectedItems = scene->selectedItems();
+    for (QGraphicsItem *item : selectedItems) {
+        if (auto *proxy = qgraphicsitem_cast<QGraphicsProxyWidget*>(item)) {
+            if (findTextBox(proxy)) {
+                selectTextBox(proxy);
+                return;
+            }
+        }
+    }
+
+    selectTextBox(nullptr);
+}
+
 void MainWindow::showPointPopups()
 {
     clearPointPopups();
@@ -410,6 +618,9 @@ void MainWindow::refreshPointPopups()
 // Dibujo de lineas con click derecho
 void MainWindow::setDrawLineMode(bool enabled)
 {
+    if (enabled && m_addTextMode) {
+        markAddTextInactive();
+    }
     if (enabled && m_eraserMode && ui->actionborrador->isChecked()) {
         ui->actionborrador->setChecked(false);
     }
@@ -427,6 +638,9 @@ void MainWindow::setDrawLineMode(bool enabled)
 
 void MainWindow::setDrawPointMode(bool enabled)
 {
+    if (enabled && m_addTextMode) {
+        markAddTextInactive();
+    }
     if (enabled && m_eraserMode && ui->actionborrador->isChecked()) {
         ui->actionborrador->setChecked(false);
     }
@@ -444,6 +658,9 @@ void MainWindow::setDrawPointMode(bool enabled)
 
 void MainWindow::setEraserMode(bool enabled)
 {
+    if (enabled) {
+        markAddTextInactive();
+    }
     m_eraserMode = enabled;
 
     if (m_eraserMode) {
@@ -472,6 +689,62 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     const int previousPointCount = dibujos.pointCoordinates().size();
 
     if (obj == view->viewport()) {
+        if (m_addTextMode) {
+            if (event->type() == QEvent::MouseButtonPress ||
+                event->type() == QEvent::MouseMove ||
+                event->type() == QEvent::MouseButtonRelease) {
+                auto *e = static_cast<QMouseEvent*>(event);
+                if (event->type() == QEvent::MouseButtonPress &&
+                        e->button() == Qt::RightButton) {
+                    m_lastRightDragPos = e->pos();
+                    m_textPlacementPending = true;
+                    m_rightDragInProgress = true;
+                    return true;
+                }
+
+                if (event->type() == QEvent::MouseMove &&
+                        (e->buttons() & Qt::RightButton) &&
+                        m_rightDragInProgress) {
+                    const QPoint delta = e->pos() - m_lastRightDragPos;
+                    view->horizontalScrollBar()->setValue(
+                                view->horizontalScrollBar()->value() - delta.x());
+                    view->verticalScrollBar()->setValue(
+                                view->verticalScrollBar()->value() - delta.y());
+                    m_lastRightDragPos = e->pos();
+                    if (delta.manhattanLength() > 2) {
+                        m_textPlacementPending = false;
+                    }
+                    return true;
+                }
+
+                if (event->type() == QEvent::MouseButtonRelease &&
+                        e->button() == Qt::RightButton) {
+                    const QPointF scenePos = view->mapToScene(e->pos());
+                    if (m_textPlacementPending) {
+                        const QList<QGraphicsItem*> hitItems = scene->items(
+                            scenePos,
+                            Qt::IntersectsItemShape,
+                            Qt::DescendingOrder,
+                            view->transform());
+                        for (QGraphicsItem *hitItem : hitItems) {
+                            if (auto *proxy = qgraphicsitem_cast<QGraphicsProxyWidget*>(hitItem)) {
+                                if (findTextBox(proxy)) {
+                                    selectTextBox(proxy);
+                                    m_textPlacementPending = false;
+                                    m_rightDragInProgress = false;
+                                    return true;
+                                }
+                            }
+                        }
+                        createTextBoxAt(scenePos);
+                    }
+                    m_textPlacementPending = false;
+                    m_rightDragInProgress = false;
+                    return true;
+                }
+            }
+        }
+
         if (m_eraserMode) {
             auto *e = static_cast<QMouseEvent*>(event);
             const bool rightPress =
@@ -496,6 +769,82 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                         refreshPointPopups();
                         return true;
                     }
+                }
+            }
+        }
+    }
+
+    if (auto *widget = qobject_cast<QWidget*>(obj)) {
+        if (auto *box = findTextBox(widget)) {
+            if (event->type() == QEvent::MouseButtonPress) {
+                auto *e = static_cast<QMouseEvent*>(event);
+                if (e->button() == Qt::LeftButton) {
+                    const QRect handleRect(widget->width() - 18,
+                                           widget->height() - 18,
+                                           18,
+                                           18);
+                    if (handleRect.contains(e->pos())) {
+                        box->resizing = true;
+                        box->resizeStartPos = e->pos();
+                        box->resizeStartSize = widget->size();
+                        if (box->editor) {
+                            double startSize = box->editor->fontPointSize();
+                            if (startSize <= 0.0) {
+                                startSize = 16.0;
+                            }
+                            box->resizeStartFontSize = startSize;
+                        } else {
+                            box->resizeStartFontSize = 16.0;
+                        }
+                        widget->setCursor(Qt::SizeFDiagCursor);
+                        return true;
+                    }
+                }
+            } else if (event->type() == QEvent::MouseMove) {
+                auto *e = static_cast<QMouseEvent*>(event);
+                const QRect handleRect(widget->width() - 18,
+                                       widget->height() - 18,
+                                       18,
+                                       18);
+                if (box->resizing) {
+                    const QPoint delta = e->pos() - box->resizeStartPos;
+                    QSize newSize = box->resizeStartSize + QSize(delta.x(), delta.y());
+                    newSize.setWidth(std::max(newSize.width(), 140));
+                    newSize.setHeight(std::max(newSize.height(), 90));
+                    widget->resize(newSize);
+                    if (box->proxy) {
+                        box->proxy->resize(newSize);
+                    }
+                    if (box->editor) {
+                        const double ratioW = static_cast<double>(newSize.width()) /
+                                std::max(1, box->resizeStartSize.width());
+                        const double ratioH = static_cast<double>(newSize.height()) /
+                                std::max(1, box->resizeStartSize.height());
+                        const double ratio = std::min(ratioW, ratioH);
+                        double newFontSize = box->resizeStartFontSize * ratio;
+                        newFontSize = std::clamp(newFontSize, 8.0, 96.0);
+
+                        QTextCursor cursor = box->editor->textCursor();
+                        cursor.select(QTextCursor::Document);
+                        QTextCharFormat fmt;
+                        fmt.setFontPointSize(newFontSize);
+                        cursor.mergeCharFormat(fmt);
+                        box->editor->mergeCurrentCharFormat(fmt);
+                        cursor.clearSelection();
+                        box->editor->setTextCursor(cursor);
+                    }
+                    return true;
+                } else {
+                    widget->setCursor(handleRect.contains(e->pos())
+                                      ? Qt::SizeFDiagCursor
+                                      : Qt::ArrowCursor);
+                }
+            } else if (event->type() == QEvent::MouseButtonRelease) {
+                auto *e = static_cast<QMouseEvent*>(event);
+                if (e->button() == Qt::LeftButton && box->resizing) {
+                    box->resizing = false;
+                    widget->setCursor(Qt::ArrowCursor);
+                    return true;
                 }
             }
         }
@@ -529,6 +878,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         }
         if (m_eraserMode && ui->actionborrador->isChecked()) {
             ui->actionborrador->setChecked(false);
+            handled = true;
+        }
+        if (m_addTextMode && ui->actionanadir_texto->isChecked()) {
+            markAddTextInactive();
             handled = true;
         }
         if (handled) {
