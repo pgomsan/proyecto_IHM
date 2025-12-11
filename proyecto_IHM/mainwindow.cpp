@@ -30,6 +30,10 @@
 #include <QGraphicsProxyWidget>
 #include <QToolButton>
 #include <QLabel>
+#include <QGraphicsLineItem>
+#include <QApplication>
+#include <QPen>
+#include <QLineF>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -138,6 +142,7 @@ void MainWindow::applyZoom()
     view->scale(currentZoom, currentZoom);
 }
 
+// Conectores de acciones a sus funicones
 void MainWindow::on_actioncolores_triggered()
 {
     const QColor chosen = QColorDialog::getColor(dibujos.lineColor(),
@@ -150,7 +155,6 @@ void MainWindow::on_actioncolores_triggered()
     dibujos.setLineColor(chosen);
     dibujos.setPointColor(chosen);
 }
-
 void MainWindow::on_actionpuntos_mapa_toggled(bool checked)
 {
     if (checked) {
@@ -159,12 +163,12 @@ void MainWindow::on_actionpuntos_mapa_toggled(bool checked)
         clearPointPopups();
     }
 }
-
 void MainWindow::on_actionreset_triggered()
 {
     dibujos.reset();
     ui->actionpuntos_mapa->setChecked(false);
     clearPointPopups();
+    clearRulerLines();
 
     {
         const QSignalBlocker blocker(ui->actiondibujar_linea);
@@ -271,16 +275,16 @@ void MainWindow::handleRegisterRequested()
     dialog.exec();
 }
 
+
+// Menús de preguntas y aleatorias
 void MainWindow::on_actionMiMenu_preguntas_triggered()
 {
     openQuestionBank();
 }
-
 void MainWindow::on_actionPregunta_aleatoria_triggered()
 {
     showRandomProblem();
 }
-
 void MainWindow::showRandomProblem()
 {
     const auto &problems = Navigation::instance().problems();
@@ -292,7 +296,6 @@ void MainWindow::showRandomProblem()
     const int idx = QRandomGenerator::global()->bounded(problems.size());
     openProblemDialog(problems.at(idx));
 }
-
 void MainWindow::openQuestionBank()
 {
     const auto &problems = Navigation::instance().problems();
@@ -307,7 +310,6 @@ void MainWindow::openQuestionBank()
             this, &MainWindow::openProblemDialog);
     dialog.exec();
 }
-
 void MainWindow::openProblemDialog(const Problem &problem)
 {
     auto *dialog = new ProblemDialog(this);
@@ -316,6 +318,7 @@ void MainWindow::openProblemDialog(const Problem &problem)
     dialog->show();
 }
 
+// Fu8nciones de muestra de puntos
 void MainWindow::showPointPopups()
 {
     clearPointPopups();
@@ -349,9 +352,8 @@ void MainWindow::showPointPopups()
 
         auto *closeButton = new QToolButton(card);
         closeButton->setText(QStringLiteral("x"));
-        closeButton->setToolTip(tr("Cerrar este punto"));
         closeButton->setAutoRaise(true);
-        closeButton->setStyleSheet("color: #c00000; font-size: 28px; font-weight: 800;");
+        closeButton->setStyleSheet("color: #c00000; font-size: 70px; font-weight: 800;");
 
         layout->addWidget(label);
         layout->addWidget(closeButton, 0, Qt::AlignTop);
@@ -370,7 +372,6 @@ void MainWindow::showPointPopups()
         m_pointPopups.append(proxy);
     }
 }
-
 void MainWindow::clearPointPopups()
 {
     for (QGraphicsProxyWidget *popup : m_pointPopups) {
@@ -382,7 +383,6 @@ void MainWindow::clearPointPopups()
     }
     m_pointPopups.clear();
 }
-
 void MainWindow::removePointPopup(QGraphicsProxyWidget *popup)
 {
     if (!popup) {
@@ -399,7 +399,6 @@ void MainWindow::removePointPopup(QGraphicsProxyWidget *popup)
         ui->actionpuntos_mapa->blockSignals(false);
     }
 }
-
 void MainWindow::refreshPointPopups()
 {
     if (ui->actionpuntos_mapa->isChecked()) {
@@ -407,7 +406,7 @@ void MainWindow::refreshPointPopups()
     }
 }
 
-// Dibujo de lineas con click derecho
+// Dibujos
 void MainWindow::setDrawLineMode(bool enabled)
 {
     if (enabled && m_eraserMode && ui->actionborrador->isChecked()) {
@@ -415,6 +414,9 @@ void MainWindow::setDrawLineMode(bool enabled)
     }
 
     dibujos.setDrawLineMode(enabled);
+    if (!enabled) {
+        discardRulerCurrentLine();
+    }
 
     if (!dibujos.drawPointMode() && ui->actiondibujar_punto->isChecked()) {
         const QSignalBlocker blocker(ui->actiondibujar_punto);
@@ -424,7 +426,6 @@ void MainWindow::setDrawLineMode(bool enabled)
     const QSignalBlocker blocker(ui->actiondibujar_linea);
     ui->actiondibujar_linea->setChecked(dibujos.drawLineMode());
 }
-
 void MainWindow::setDrawPointMode(bool enabled)
 {
     if (enabled && m_eraserMode && ui->actionborrador->isChecked()) {
@@ -442,6 +443,7 @@ void MainWindow::setDrawPointMode(bool enabled)
     ui->actiondibujar_punto->setChecked(dibujos.drawPointMode());
 }
 
+// Borrador
 void MainWindow::setEraserMode(bool enabled)
 {
     m_eraserMode = enabled;
@@ -467,11 +469,16 @@ void MainWindow::setEraserMode(bool enabled)
         view->unsetCursor();
     }
 }
+
+// Event filter y manejador de teclas
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     const int previousPointCount = dibujos.pointCoordinates().size();
 
     if (obj == view->viewport()) {
+        if (handleRulerLineDrawing(event)) {
+            return true;
+        }
         if (m_eraserMode) {
             auto *e = static_cast<QMouseEvent*>(event);
             const bool rightPress =
@@ -513,6 +520,100 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     }
 
     return QMainWindow::eventFilter(obj, event);
+}
+
+bool MainWindow::handleRulerLineDrawing(QEvent *event)
+{
+    if (!m_ruler || !m_ruler->isVisible() || !ui->actionregla->isChecked()) {
+        discardRulerCurrentLine();
+        return false;
+    }
+
+    if (!dibujos.drawLineMode()) {
+        discardRulerCurrentLine();
+        return false;
+    }
+
+    switch (event->type()) {
+    case QEvent::MouseButtonPress: {
+        auto *mouseEvent = static_cast<QMouseEvent*>(event);
+        if (!(mouseEvent->modifiers() & Qt::ControlModifier)) {
+            return false;
+        }
+        if (mouseEvent->button() != Qt::LeftButton) {
+            return false;
+        }
+
+        const QPointF scenePos = view->mapToScene(mouseEvent->pos());
+        if (!isCursorOnRuler(scenePos)) {
+            return false;
+        }
+
+        m_rulerLineStart = m_ruler->mapFromScene(scenePos);
+
+        auto *lineItem = new QGraphicsLineItem(QLineF(m_rulerLineStart, m_rulerLineStart), m_ruler);
+        QPen pen(dibujos.lineColor(), 6.0);
+        lineItem->setPen(pen);
+        lineItem->setZValue(m_ruler->zValue() + 1.0);
+        m_rulerCurrentLine = lineItem;
+        return true;
+    }
+    case QEvent::MouseMove: {
+        auto *mouseEvent = static_cast<QMouseEvent*>(event);
+        if (!m_rulerCurrentLine || !(mouseEvent->buttons() & Qt::LeftButton)) {
+            return false;
+        }
+        const QPointF scenePos = view->mapToScene(mouseEvent->pos());
+        const QPointF localPos = m_ruler->mapFromScene(scenePos);
+        m_rulerCurrentLine->setLine(QLineF(m_rulerLineStart, localPos));
+        return true;
+    }
+    case QEvent::MouseButtonRelease: {
+        auto *mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() != Qt::LeftButton || !m_rulerCurrentLine) {
+            return false;
+        }
+        const QLineF line = m_rulerCurrentLine->line();
+        if (line.length() < 2.0) {
+            delete m_rulerCurrentLine;
+        } else {
+            m_rulerLineItems.append(m_rulerCurrentLine);
+        }
+        m_rulerCurrentLine = nullptr;
+        return true;
+    }
+    default:
+        break;
+    }
+
+    return false;
+}
+
+bool MainWindow::isCursorOnRuler(const QPointF &scenePos) const
+{
+    if (!m_ruler) {
+        return false;
+    }
+    const QPointF localPos = m_ruler->mapFromScene(scenePos);
+    return m_ruler->contains(localPos);
+}
+
+void MainWindow::clearRulerLines()
+{
+    discardRulerCurrentLine();
+    for (QGraphicsLineItem *line : m_rulerLineItems) {
+        delete line;
+    }
+    m_rulerLineItems.clear();
+}
+
+void MainWindow::discardRulerCurrentLine()
+{
+    if (!m_rulerCurrentLine) {
+        return;
+    }
+    delete m_rulerCurrentLine;
+    m_rulerCurrentLine = nullptr;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)

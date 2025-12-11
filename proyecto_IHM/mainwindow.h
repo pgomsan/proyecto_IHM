@@ -19,6 +19,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class QMenu;
 class QGraphicsProxyWidget;
+class QGraphicsLineItem;
 
 class MainWindow : public QMainWindow
 {
@@ -75,10 +76,17 @@ private:
     void setCompassVisible(bool visible);
     void setEraserMode(bool enabled);
     void showPointPopups();
+    bool handleRulerLineDrawing(QEvent *event);
+    bool isCursorOnRuler(const QPointF &scenePos) const;
+    void clearRulerLines();
+    void discardRulerCurrentLine();
     void clearPointPopups();
     void removePointPopup(QGraphicsProxyWidget *popup);
     void refreshPointPopups();
     QVector<QGraphicsProxyWidget*> m_pointPopups;
+    QVector<QGraphicsLineItem*> m_rulerLineItems;
+    QPointF m_rulerLineStart;
+    QGraphicsLineItem *m_rulerCurrentLine = nullptr;
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar
