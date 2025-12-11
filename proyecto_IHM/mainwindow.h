@@ -53,6 +53,7 @@ private slots:
 
     void setDrawPointMode(bool enabled);
     void setDrawLineMode(bool enabled);
+    void setDrawArcMode(bool enabled);
 
     void handleLoginRequested(const QString &username, const QString &password);
     void handleRegisterRequested();

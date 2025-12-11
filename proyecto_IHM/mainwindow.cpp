@@ -82,6 +82,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->actiondibujar_linea->setCheckable(true);
     connect(ui->actiondibujar_linea, &QAction::toggled,
             this, &MainWindow::setDrawLineMode);
+    // Curva
+    ui->actiondibujar_curva->setCheckable(true);
+    connect(ui->actiondibujar_curva, &QAction::toggled,
+            this, &MainWindow::setDrawArcMode);
 
     // Borrador
     ui->actionborrador->setCheckable(true);
@@ -192,6 +196,10 @@ void MainWindow::on_actionreset_triggered()
     {
         const QSignalBlocker blocker(ui->actiondibujar_punto);
         ui->actiondibujar_punto->setChecked(false);
+    }
+    {
+        const QSignalBlocker blocker(ui->actiondibujar_curva);
+        ui->actiondibujar_curva->setChecked(false);
     }
 }
 
@@ -351,8 +359,13 @@ void MainWindow::setAddTextMode(bool enabled)
             const QSignalBlocker blocker(ui->actiondibujar_punto);
             ui->actiondibujar_punto->setChecked(false);
         }
+        if (ui->actiondibujar_curva->isChecked()) {
+            const QSignalBlocker blocker(ui->actiondibujar_curva);
+            ui->actiondibujar_curva->setChecked(false);
+        }
         dibujos.setDrawLineMode(false);
         dibujos.setDrawPointMode(false);
+        dibujos.setDrawArcMode(false);
 
         if (ui->actionborrador->isChecked()) {
             const QSignalBlocker blocker(ui->actionborrador);
@@ -631,6 +644,10 @@ void MainWindow::setDrawLineMode(bool enabled)
         const QSignalBlocker blocker(ui->actiondibujar_punto);
         ui->actiondibujar_punto->setChecked(false);
     }
+    if (!dibujos.drawArcMode() && ui->actiondibujar_curva->isChecked()) {
+        const QSignalBlocker blocker(ui->actiondibujar_curva);
+        ui->actiondibujar_curva->setChecked(false);
+    }
 
     const QSignalBlocker blocker(ui->actiondibujar_linea);
     ui->actiondibujar_linea->setChecked(dibujos.drawLineMode());
@@ -651,9 +668,37 @@ void MainWindow::setDrawPointMode(bool enabled)
         const QSignalBlocker blocker(ui->actiondibujar_linea);
         ui->actiondibujar_linea->setChecked(false);
     }
+    if (!dibujos.drawArcMode() && ui->actiondibujar_curva->isChecked()) {
+        const QSignalBlocker blocker(ui->actiondibujar_curva);
+        ui->actiondibujar_curva->setChecked(false);
+    }
 
     const QSignalBlocker blocker(ui->actiondibujar_punto);
     ui->actiondibujar_punto->setChecked(dibujos.drawPointMode());
+}
+
+void MainWindow::setDrawArcMode(bool enabled)
+{
+    if (enabled && m_addTextMode) {
+        markAddTextInactive();
+    }
+    if (enabled && m_eraserMode && ui->actionborrador->isChecked()) {
+        ui->actionborrador->setChecked(false);
+    }
+
+    dibujos.setDrawArcMode(enabled);
+
+    if (!dibujos.drawLineMode() && ui->actiondibujar_linea->isChecked()) {
+        const QSignalBlocker blocker(ui->actiondibujar_linea);
+        ui->actiondibujar_linea->setChecked(false);
+    }
+    if (!dibujos.drawPointMode() && ui->actiondibujar_punto->isChecked()) {
+        const QSignalBlocker blocker(ui->actiondibujar_punto);
+        ui->actiondibujar_punto->setChecked(false);
+    }
+
+    const QSignalBlocker blocker(ui->actiondibujar_curva);
+    ui->actiondibujar_curva->setChecked(dibujos.drawArcMode());
 }
 
 void MainWindow::setEraserMode(bool enabled)
@@ -673,8 +718,13 @@ void MainWindow::setEraserMode(bool enabled)
             const QSignalBlocker blocker(ui->actiondibujar_punto);
             ui->actiondibujar_punto->setChecked(false);
         }
+        if (ui->actiondibujar_curva->isChecked()) {
+            const QSignalBlocker blocker(ui->actiondibujar_curva);
+            ui->actiondibujar_curva->setChecked(false);
+        }
         dibujos.setDrawLineMode(false);
         dibujos.setDrawPointMode(false);
+        dibujos.setDrawArcMode(false);
 
         // Mantener el desplazamiento con click izquierdo, borrar con click derecho
         view->setDragMode(QGraphicsView::ScrollHandDrag);
@@ -761,6 +811,10 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     view->transform());
 
                 for (QGraphicsItem *hitItem : hitItems) {
+                    if (dibujos.eraseArcItem(hitItem, scenePos)) {
+                        refreshPointPopups();
+                        return true;
+                    }
                     if (dibujos.eraseLineItem(hitItem)) {
                         refreshPointPopups();
                         return true;
@@ -874,6 +928,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
         }
         if (dibujos.drawPointMode()) {
             setDrawPointMode(false);
+            handled = true;
+        }
+        if (dibujos.drawArcMode()) {
+            setDrawArcMode(false);
             handled = true;
         }
         if (m_eraserMode && ui->actionborrador->isChecked()) {
