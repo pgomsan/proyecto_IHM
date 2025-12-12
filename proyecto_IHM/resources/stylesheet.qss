@@ -1,0 +1,149 @@
+/*
+ * Stylesheet for Nautical Navigation App
+ *
+ * Color Palette (70-20-10 Rule):
+ *  - 70% (Primary/Background): #2C3E50 (Dark Slate Blue)
+ *  - 20% (Secondary/Interactive): #3498DB (Soft Blue)
+ *  - 10% (Highlight/Accent): #E67E22 (Warm Orange)
+ *  - Text: #ECF0F1 (Light Gray/Off-White)
+ */
+
+/* General Widget Styling */
+* {
+    color: #ECF0F1; /* Light Text */
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Main Window and Dialogs */
+QMainWindow, QDialog {
+    background-color: #2C3E50; /* 70% - Primary */
+}
+
+/* Input Fields */
+QLineEdit, QTextEdit, QSpinBox {
+    background-color: #34495E; /* Slightly darker than primary */
+    border: 1px solid #3498DB; /* 20% - Secondary */
+    border-radius: 4px;
+    padding: 5px;
+    color: #ECF0F1;
+}
+
+QLineEdit:focus, QTextEdit:focus, QSpinBox:focus {
+    border-color: #E67E22; /* 10% - Highlight */
+}
+
+/* Buttons */
+QPushButton {
+    background-color: #3498DB; /* 20% - Secondary */
+    color: #ECF0F1;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #4DA8DB; /* Lighter shade of secondary */
+}
+
+QPushButton:pressed {
+    background-color: #217dbb; /* Darker shade of secondary */
+}
+
+QPushButton:disabled {
+    background-color: #566573;
+    color: #95A5A6;
+}
+
+/* Labels */
+QLabel {
+    background-color: transparent;
+    color: #ECF0F1;
+}
+
+/* Menu Bar */
+QMenuBar {
+    background-color: #34495E;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 4px 8px;
+}
+
+QMenuBar::item:selected {
+    background-color: #3498DB; /* 20% - Secondary */
+}
+
+/* Menu Dropdowns */
+QMenu {
+    background-color: #34495E;
+    border: 1px solid #2C3E50;
+}
+
+QMenu::item:selected {
+    background-color: #3498DB; /* 20% - Secondary */
+}
+
+/* Status Bar */
+QStatusBar {
+    background-color: #34495E;
+}
+
+/* ToolBar */
+QToolBar {
+    background-color: #2C3E50;
+    border: none;
+    padding: 2px;
+}
+
+QToolButton {
+    background-color: transparent;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+QToolButton:hover {
+    background-color: #34495E;
+}
+
+QToolButton:checked {
+    background-color: #3498DB; /* 20% - Secondary */
+    border: 1px solid #E67E22; /* 10% - Highlight */
+}
+
+/* ScrollBars */
+QScrollBar:vertical {
+    border: none;
+    background: #34495E;
+    width: 12px;
+    margin: 15px 0 15px 0;
+}
+QScrollBar::handle:vertical {
+    background: #566573;
+    min-height: 20px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+QScrollBar:horizontal {
+    border: none;
+    background: #34495E;
+    height: 12px;
+    margin: 0px 15px 0px 15px;
+}
+QScrollBar::handle:horizontal {
+    background: #566573;
+    min-width: 20px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+    background: none;
+}
