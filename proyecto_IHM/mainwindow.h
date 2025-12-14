@@ -105,6 +105,7 @@ private:
     TextBoxWidgets *findTextBox(QGraphicsProxyWidget *proxy);
     TextBoxWidgets *findTextBox(QWidget *container);
     void applyColorToActiveText(const QColor &color);
+    void autoResizeTextBox(TextBoxWidgets *box);
     void markAddTextInactive();
     void showPointPopups();
     void clearPointPopups();

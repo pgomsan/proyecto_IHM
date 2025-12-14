@@ -37,6 +37,7 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
     ui->passwordHintLabel->setProperty("role", "hint");
     ui->confirmButton->setProperty("role", "primary");
     ui->chooseAvatarButton->setProperty("role", "secondary");
+    ui->cancelButton->setProperty("role", "secondary");
 
     repolish(ui->titleLabel);
     repolish(ui->cardFrame);
@@ -46,6 +47,7 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
     repolish(ui->passwordHintLabel);
     repolish(ui->confirmButton);
     repolish(ui->chooseAvatarButton);
+    repolish(ui->cancelButton);
 
     ui->passwordLineEdit->setEchoMode(QLineEdit::Password);
     ui->togglePasswordButton->setCheckable(true);
@@ -59,6 +61,8 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
             this, &RegisterDialog::togglePasswordVisibility);
     connect(ui->chooseAvatarButton, &QPushButton::clicked,
             this, &RegisterDialog::chooseAvatar);
+    connect(ui->cancelButton, &QPushButton::clicked,
+            this, &RegisterDialog::reject);
     connect(ui->confirmButton, &QPushButton::clicked,
             this, &RegisterDialog::onConfirm);
 
