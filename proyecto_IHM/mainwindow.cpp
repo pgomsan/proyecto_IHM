@@ -460,7 +460,11 @@ void MainWindow::selectTextBox(QGraphicsProxyWidget *proxy)
                 .arg(borderColor));
         }
         if (isActive && box.editor) {
-            box.editor->setTextColor(m_textColor);
+            m_textColor = box.textColor;
+            QTextCharFormat fmt;
+            fmt.setForeground(box.textColor);
+            box.editor->mergeCurrentCharFormat(fmt);
+            box.editor->setTextColor(box.textColor);
             box.editor->setFocus();
         }
     }
@@ -476,6 +480,8 @@ void MainWindow::applyColorToActiveText(const QColor &color)
     if (!box || !box->editor) {
         return;
     }
+
+    box->textColor = color;
 
     QTextCursor cursor = box->editor->textCursor();
     cursor.select(QTextCursor::Document);
@@ -619,7 +625,8 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
     m_textBoxes.append(TextBoxWidgets{
         proxy,
         container,
-        editor
+        editor,
+        m_textColor
     });
 
     {
