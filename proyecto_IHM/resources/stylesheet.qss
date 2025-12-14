@@ -226,6 +226,19 @@ QTableWidget {
     gridline-color: #DCE3EF;
 }
 
+QTableWidget::viewport {
+    background-color: #FFFFFF;
+}
+
+QTableWidget::item {
+    padding: 6px 8px;
+}
+
+QTableWidget::item:selected {
+    background: rgba(255, 107, 107, 0.18);
+    color: #1F2A35;
+}
+
 QHeaderView::section {
     background-color: #F3F6FB;
     color: #1F2A35;

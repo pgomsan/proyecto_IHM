@@ -2,6 +2,7 @@
 #include "ui_historydialog.h"
 
 #include <QDateTime>
+#include <QHeaderView>
 #include <QStyle>
 
 namespace {
@@ -75,7 +76,10 @@ HistoryDialog::HistoryDialog(QWidget *parent)
     ui->sessionsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->sessionsTable->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->sessionsTable->setAlternatingRowColors(true);
-    ui->sessionsTable->horizontalHeader()->setStretchLastSection(true);
+    auto *header = ui->sessionsTable->horizontalHeader();
+    header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    header->setSectionResizeMode(2, QHeaderView::Stretch);
     ui->sessionsTable->verticalHeader()->setVisible(false);
 
     connect(ui->applyButton, &QPushButton::clicked, this, &HistoryDialog::applyFilter);
@@ -182,8 +186,6 @@ void HistoryDialog::updateTable(const QVector<Session> &sessions)
         ui->sessionsTable->setItem(row, 1, hitsItem);
         ui->sessionsTable->setItem(row, 2, faultsItem);
     }
-
-    ui->sessionsTable->resizeColumnsToContents();
 }
 
 void HistoryDialog::updateTotals(const QVector<Session> &sessions)
