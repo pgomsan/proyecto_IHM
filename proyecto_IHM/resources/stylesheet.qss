@@ -155,8 +155,9 @@ QMenu::item:selected {
 
 /* Status Bar */
 QStatusBar {
-    background-color: #355C7D;
-    color: #F3F6FB;
+    background-color: #F3F6FB;
+    color: #1F2A35;
+    border-top: 1px solid #DCE3EF;
 }
 
 /* ToolBar */
