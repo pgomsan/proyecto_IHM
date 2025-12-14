@@ -37,6 +37,7 @@
 #include <QFrame>
 #include <QSizePolicy>
 #include <QTextCharFormat>
+#include <QFontMetrics>
 #include <QCursor>
 #include <QPointer>
 #include <cmath>
@@ -495,6 +496,42 @@ void MainWindow::autoResizeTextBox(TextBoxWidgets *box)
         return;
     }
 
+    const double safeZoom = std::max(currentZoom, 0.01);
+    const auto scaled = [safeZoom](int pixelsOnScreen) {
+        return static_cast<int>(std::round(pixelsOnScreen / safeZoom));
+    };
+
+    const int minWidth = std::max(box->container->minimumWidth(), scaled(260));
+    const int maxWidth = [&]() -> int {
+        if (!view || !view->viewport()) {
+            return std::max(minWidth, scaled(900));
+        }
+        const int viewportScreenWidth = view->viewport()->width();
+        const int maxWidthFromViewport =
+            static_cast<int>(std::round(viewportScreenWidth / safeZoom)) - scaled(32);
+        return std::max(minWidth, maxWidthFromViewport);
+    }();
+
+    const QString plainText = box->editor->toPlainText();
+    const bool isSingleLine = !plainText.contains(QLatin1Char('\n'));
+
+    if (isSingleLine) {
+        const QFontMetricsF fm(box->editor->font());
+        const qreal lineWidth = fm.horizontalAdvance(plainText.isEmpty()
+                                                         ? QStringLiteral(" ")
+                                                         : plainText);
+        const int chromePadding = scaled(56);
+        const int desiredWidth = std::clamp(
+            static_cast<int>(std::ceil(lineWidth)) + chromePadding,
+            minWidth,
+            maxWidth);
+
+        if (desiredWidth > currentWidth) {
+            box->container->resize(desiredWidth, box->container->height());
+            box->proxy->resize(box->container->size());
+        }
+    }
+
     // Force document layout to wrap to current viewport width for correct height.
     const int viewportWidth = box->editor->viewport()->width();
     if (viewportWidth > 0) {
@@ -507,9 +544,9 @@ void MainWindow::autoResizeTextBox(TextBoxWidgets *box)
     const QSizeF docSize = box->editor->document()->size();
     const int docHeight = static_cast<int>(std::ceil(docSize.height()));
 
-    const int minHeight = 90;
-    const int maxHeight = 520;
-    const int targetHeight = std::clamp(docHeight + layoutPadding + 24, minHeight, maxHeight);
+    const int minHeight = std::max(box->container->minimumHeight(), scaled(60));
+    const int maxHeight = scaled(360);
+    const int targetHeight = std::clamp(docHeight + layoutPadding + scaled(16), minHeight, maxHeight);
 
     if (box->container->height() == targetHeight) {
         return;
@@ -521,6 +558,11 @@ void MainWindow::autoResizeTextBox(TextBoxWidgets *box)
 
 QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
 {
+    const double safeZoom = std::max(currentZoom, 0.01);
+    const auto scaled = [safeZoom](int pixelsOnScreen) {
+        return static_cast<int>(std::round(pixelsOnScreen / safeZoom));
+    };
+
     auto *container = new QWidget;
     container->setAttribute(Qt::WA_StyledBackground, true);
     container->setAttribute(Qt::WA_TranslucentBackground, true);
@@ -528,7 +570,7 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
                              "border: 1px dashed transparent;"
                              "border-radius: 6px;"
                              "padding: 4px;");
-    container->setMinimumSize(140, 90);
+    container->setMinimumSize(scaled(240), scaled(60));
     container->installEventFilter(this);
 
     auto *layout = new QVBoxLayout(container);
@@ -538,7 +580,7 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
     auto *editor = new QTextEdit(container);
     editor->setPlaceholderText(tr("Introduce un texto..."));
     editor->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    editor->setMinimumSize(120, 70);
+    editor->setMinimumSize(scaled(220), scaled(40));
     editor->setFrameShape(QFrame::NoFrame);
     editor->setTextColor(m_textColor);
     editor->setStyleSheet("background: transparent;");
@@ -560,7 +602,7 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
 
     layout->addWidget(editor);
 
-    container->resize(260, 170);
+    container->resize(scaled(420), scaled(90));
 
     auto *proxy = scene->addWidget(container);
     proxy->setZValue(35);
@@ -915,6 +957,16 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         if (auto *box = findTextBox(widget)) {
             if (event->type() == QEvent::MouseButtonPress) {
                 auto *e = static_cast<QMouseEvent*>(event);
+                if (e->button() == Qt::RightButton && box->proxy && view) {
+                    box->moving = true;
+                    box->resizing = false;
+                    const QPoint viewPos = view->mapFromGlobal(widget->mapToGlobal(e->pos()));
+                    box->moveStartScenePos = view->mapToScene(viewPos);
+                    box->moveStartProxyPos = box->proxy->pos();
+                    widget->setCursor(Qt::ClosedHandCursor);
+                    selectTextBox(box->proxy);
+                    return true;
+                }
                 if (e->button() == Qt::LeftButton) {
                     const QRect handleRect(widget->width() - 18,
                                            widget->height() - 18,
@@ -943,6 +995,13 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                                        widget->height() - 18,
                                        18,
                                        18);
+                if (box->moving && (e->buttons() & Qt::RightButton) && box->proxy && view) {
+                    const QPoint viewPos = view->mapFromGlobal(widget->mapToGlobal(e->pos()));
+                    const QPointF scenePos = view->mapToScene(viewPos);
+                    const QPointF delta = scenePos - box->moveStartScenePos;
+                    box->proxy->setPos(box->moveStartProxyPos + delta);
+                    return true;
+                }
                 if (box->resizing) {
                     const QPoint delta = e->pos() - box->resizeStartPos;
                     QSize newSize = box->resizeStartSize + QSize(delta.x(), delta.y());
@@ -978,6 +1037,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 }
             } else if (event->type() == QEvent::MouseButtonRelease) {
                 auto *e = static_cast<QMouseEvent*>(event);
+                if (e->button() == Qt::RightButton && box->moving) {
+                    box->moving = false;
+                    widget->setCursor(Qt::ArrowCursor);
+                    return true;
+                }
                 if (e->button() == Qt::LeftButton && box->resizing) {
                     box->resizing = false;
                     widget->setCursor(Qt::ArrowCursor);
