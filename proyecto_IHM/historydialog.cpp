@@ -2,7 +2,9 @@
 #include "ui_historydialog.h"
 
 #include <QDateTime>
+#include <QFormLayout>
 #include <QHeaderView>
+#include <QSizePolicy>
 #include <QStyle>
 
 namespace {
@@ -68,6 +70,13 @@ HistoryDialog::HistoryDialog(QWidget *parent)
     ui->toDateEdit->setCalendarPopup(true);
     ui->fromDateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->toDateEdit->setDisplayFormat("yyyy-MM-dd");
+    if (ui->filterFormLayout) {
+        ui->filterFormLayout->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
+    }
+    ui->fromDateEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui->toDateEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    ui->fromDateEdit->setMaximumWidth(190);
+    ui->toDateEdit->setMaximumWidth(190);
 
     ui->sessionsTable->setColumnCount(3);
     ui->sessionsTable->setHorizontalHeaderLabels(
@@ -77,10 +86,18 @@ HistoryDialog::HistoryDialog(QWidget *parent)
     ui->sessionsTable->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->sessionsTable->setAlternatingRowColors(true);
     auto *header = ui->sessionsTable->horizontalHeader();
-    header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(2, QHeaderView::Stretch);
+    header->setSectionResizeMode(0, QHeaderView::Stretch);
+    header->setSectionResizeMode(1, QHeaderView::Fixed);
+    header->setSectionResizeMode(2, QHeaderView::Fixed);
+    ui->sessionsTable->setColumnWidth(1, 110);
+    ui->sessionsTable->setColumnWidth(2, 110);
     ui->sessionsTable->verticalHeader()->setVisible(false);
+    ui->sessionsTable->verticalHeader()->setDefaultSectionSize(32);
+    ui->sessionsTable->setMinimumHeight(160);
+
+    ui->verticalLayout->setStretchFactor(ui->filtersCard, 0);
+    ui->verticalLayout->setStretchFactor(ui->resultsCard, 1);
+    ui->verticalLayout->setStretchFactor(ui->totalsCard, 0);
 
     connect(ui->applyButton, &QPushButton::clicked, this, &HistoryDialog::applyFilter);
     connect(ui->closeButton, &QPushButton::clicked, this, &HistoryDialog::reject);

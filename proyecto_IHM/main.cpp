@@ -4,11 +4,18 @@
 #include <QFile>
 #include <QFont>
 #include <QFontDatabase>
+#include <QStyleFactory>
 #include <QTextStream>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+#ifdef Q_OS_WIN
+    if (auto *fusionStyle = QStyleFactory::create(QStringLiteral("Fusion"))) {
+        a.setStyle(fusionStyle);
+    }
+#endif
 
     QFontDatabase::addApplicationFont(":/fonts/Inter-Regular.ttf");
     QFontDatabase::addApplicationFont(":/fonts/Inter-SemiBold.ttf");

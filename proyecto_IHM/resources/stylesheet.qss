@@ -226,6 +226,40 @@ QTableWidget {
     gridline-color: #DCE3EF;
 }
 
+/* Avoid platform-specific focus underline (e.g. Windows blue accent) */
+QAbstractScrollArea:focus {
+    outline: none;
+}
+
+QAbstractScrollArea {
+    border: 1px solid #DCE3EF;
+}
+
+QAbstractScrollArea::pane {
+    border: 1px solid #DCE3EF;
+}
+
+QGraphicsView {
+    border: 1px solid #DCE3EF;
+}
+
+QGraphicsView:focus {
+    border: 1px solid #DCE3EF;
+}
+
+QGraphicsView::pane {
+    border: 1px solid #DCE3EF;
+}
+
+QAbstractScrollArea::corner {
+    background-color: #F3F6FB;
+    border: 0px;
+}
+
+QTableWidget:focus {
+    border: 1px solid #DCE3EF; /* Match toolbar divider tone */
+}
+
 QTableWidget::viewport {
     background-color: #FFFFFF;
 }
@@ -283,4 +317,17 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
 }
 QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
     background: none;
+}
+
+QScrollBar:focus {
+    outline: none;
+    border: none;
+}
+
+/* Bottom-right corner between scrollbars (avoid default blue accent) */
+QTableCornerButton::section {
+    background-color: #F3F6FB;
+    border: 0px;
+    border-top: 1px solid #DCE3EF;
+    border-left: 1px solid #DCE3EF;
 }
