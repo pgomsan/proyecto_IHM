@@ -2,8 +2,11 @@
 
 #include <QBuffer>
 #include <QCoreApplication>
+#include <QDateTime>
+#include <QLocale>
 #include <QSqlDriver>
 #include <QUuid>
+#include <algorithm>
 
 NavigationDAO::NavigationDAO(const QString &dbFilePath)
     : m_dbFilePath(dbFilePath),
@@ -186,7 +189,7 @@ QVector<Session> NavigationDAO::loadSessionsFor(const QString &nickName)
 {
     QVector<Session> sessions;
     QSqlQuery q(m_db);
-    q.prepare("SELECT timeStamp, hits, faults FROM session WHERE userNickName = ? ORDER BY timeStamp");
+    q.prepare("SELECT timeStamp, hits, faults FROM session WHERE userNickName = ?");
     q.addBindValue(nickName);
 
     if (!q.exec()) {
@@ -196,6 +199,9 @@ QVector<Session> NavigationDAO::loadSessionsFor(const QString &nickName)
     while (q.next()) {
         sessions.push_back(buildSessionFromQuery(q));
     }
+    std::sort(sessions.begin(), sessions.end(), [](const Session &a, const Session &b) {
+        return a.timeStamp() < b.timeStamp();
+    });
     return sessions;
 }
 
@@ -311,7 +317,46 @@ QString NavigationDAO::dateTimeToDb(const QDateTime &dt) const
 
 QDateTime NavigationDAO::dateTimeFromDb(const QString &s) const
 {
-    return QDateTime::fromString(s, Qt::ISODate);
+    if (s.isEmpty()) {
+        return {};
+    }
+
+    QDateTime dt = QDateTime::fromString(s, Qt::ISODate);
+    if (dt.isValid()) {
+        return dt;
+    }
+
+    dt = QDateTime::fromString(s, Qt::ISODateWithMs);
+    if (dt.isValid()) {
+        return dt;
+    }
+
+    const QString normalized = QString(s)
+                                   .replace(QChar(0x202F), QLatin1Char(' '))
+                                   .replace(QChar(0x00A0), QLatin1Char(' '))
+                                   .simplified();
+
+    const QLocale systemLocale = QLocale::system();
+    dt = systemLocale.toDateTime(normalized, QLocale::ShortFormat);
+    if (dt.isValid()) {
+        return dt;
+    }
+    dt = systemLocale.toDateTime(normalized, QLocale::LongFormat);
+    if (dt.isValid()) {
+        return dt;
+    }
+
+    const QLocale enUs(QLocale::English, QLocale::UnitedStates);
+    dt = enUs.toDateTime(normalized, QStringLiteral("M/d/yy, h:mm AP"));
+    if (dt.isValid()) {
+        return dt;
+    }
+    dt = enUs.toDateTime(normalized, QStringLiteral("M/d/yyyy, h:mm AP"));
+    if (dt.isValid()) {
+        return dt;
+    }
+
+    return {};
 }
 
 QString NavigationDAO::boolToDb(bool v) const

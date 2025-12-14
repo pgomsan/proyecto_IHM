@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QString>
+#include <QImage>
 
 namespace Ui {
 class RegisterDialog;
@@ -20,14 +21,18 @@ signals:
     void registerRequested(const QString &username,
                            const QString &password,
                            const QString &email,
-                           const QDate &birthdate);
+                           const QDate &birthdate,
+                           const QImage &avatar);
 
 private slots:
     void togglePasswordVisibility(bool checked);
+    void chooseAvatar();
     void onConfirm();
 
 private:
     Ui::RegisterDialog *ui;
+    QImage m_avatar;
+    void updateAvatarPreview();
 };
 
 #endif // REGISTERDIALOG_H
