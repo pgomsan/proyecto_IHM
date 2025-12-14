@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QLocale>
+#include <QRegularExpression>
 #include <QSqlDriver>
 #include <QUuid>
 #include <algorithm>
@@ -335,6 +336,37 @@ QDateTime NavigationDAO::dateTimeFromDb(const QString &s) const
                                    .replace(QChar(0x202F), QLatin1Char(' '))
                                    .replace(QChar(0x00A0), QLatin1Char(' '))
                                    .simplified();
+
+    {
+        const QRegularExpression rx(
+            QStringLiteral(R"(^(\d{1,2})/(\d{1,2})/(\d{2,4}),\s*(\d{1,2}):(\d{2})\s*([AP]M)$)"),
+            QRegularExpression::CaseInsensitiveOption);
+        const auto m = rx.match(normalized);
+        if (m.hasMatch()) {
+            const int month = m.captured(1).toInt();
+            const int day = m.captured(2).toInt();
+            int year = m.captured(3).toInt();
+            int hour = m.captured(4).toInt();
+            const int minute = m.captured(5).toInt();
+            const QString ampm = m.captured(6).toUpper();
+
+            if (year < 100) {
+                year = (year < 70) ? (2000 + year) : (1900 + year);
+            }
+
+            if (ampm == QLatin1String("PM") && hour < 12) {
+                hour += 12;
+            } else if (ampm == QLatin1String("AM") && hour == 12) {
+                hour = 0;
+            }
+
+            const QDate date(year, month, day);
+            const QTime time(hour, minute, 0);
+            if (date.isValid() && time.isValid()) {
+                return QDateTime(date, time);
+            }
+        }
+    }
 
     const QLocale systemLocale = QLocale::system();
     dt = systemLocale.toDateTime(normalized, QLocale::ShortFormat);
