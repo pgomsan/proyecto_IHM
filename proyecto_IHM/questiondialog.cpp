@@ -50,6 +50,8 @@ ProblemDialog::ProblemDialog(QWidget *parent)
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, this);
     QPushButton *checkButton = buttonBox->addButton(tr("Comprobar"), QDialogButtonBox::ActionRole);
     QPushButton *toggleAnswers = buttonBox->addButton(tr("Ocultar respuestas"), QDialogButtonBox::ActionRole);
+    checkButton->setProperty("role", "primary");
+    toggleAnswers->setProperty("role", "secondary");
     connect(checkButton, &QPushButton::clicked, this, &ProblemDialog::handleCheckAnswer);
     connect(toggleAnswers, &QPushButton::clicked, this, [this, toggleAnswers]() {
         const bool willHide = answersScroll->isVisible();

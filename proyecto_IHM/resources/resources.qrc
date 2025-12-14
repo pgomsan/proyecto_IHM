@@ -21,5 +21,6 @@
         <file>icons/punto.png</file>
         <file>icons/anadir-texto.png</file>
         <file>icons/arrow-switch.png</file>
+        <file>icons/sinfotodeperfil.png</file>
     </qresource>
 </RCC>

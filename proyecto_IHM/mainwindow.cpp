@@ -5,6 +5,7 @@
 #include "profiledialog.h"
 #include "questiondialog.h"
 #include "questionbankdialog.h"
+#include "historydialog.h"
 #include "navdb/lib/include/navigation.h"
 #include "navdb/lib/include/navdaoexception.h"
 #include <QGraphicsPixmapItem>
@@ -223,7 +224,7 @@ void MainWindow::on_actionmenu_usuario_triggered()
         ProfileDialog dialog(this);
         dialog.setUser(userAgent.currentUser());
         connect(&dialog, &ProfileDialog::profileUpdated, this,
-                [this](const QString &password, const QString &email, const QDate &birthdate) {
+                [this](const QString &password, const QString &email, const QDate &birthdate, const QImage &avatar) {
             auto &nav = Navigation::instance();
             const User *current = userAgent.currentUser();
             if (!current) {
@@ -233,6 +234,7 @@ void MainWindow::on_actionmenu_usuario_triggered()
             updated.setPassword(password);
             updated.setEmail(email);
             updated.setBirthdate(birthdate);
+            updated.setAvatar(avatar);
             try {
                 nav.updateUser(updated);
                 QMessageBox::information(this, tr("Perfil"), tr("Perfil actualizado."));
@@ -257,6 +259,26 @@ void MainWindow::on_actionmenu_usuario_triggered()
             this, &MainWindow::handleRegisterRequested);
     dialog.exec();
 }
+
+void MainWindow::on_actionhistorial_triggered()
+{
+    if (!userAgent.isLoggedIn()) {
+        QMessageBox::information(this, tr("Historial"),
+                                 tr("Inicia sesión para ver tu historial."));
+        return;
+    }
+
+    const User *current = userAgent.currentUser();
+    if (!current) {
+        QMessageBox::warning(this, tr("Historial"),
+                             tr("No se pudo cargar el usuario actual."));
+        return;
+    }
+
+    HistoryDialog dialog(this);
+    dialog.setSessions(current->sessions());
+    dialog.exec();
+}
 void MainWindow::handleLoginRequested(const QString &username, const QString &password)
 {
     QString error;
@@ -274,7 +296,7 @@ void MainWindow::handleRegisterRequested()
     RegisterDialog dialog(this);
     connect(&dialog, &RegisterDialog::registerRequested, this,
             [this](const QString &username, const QString &password,
-                   const QString &email, const QDate &birthdate) {
+                   const QString &email, const QDate &birthdate, const QImage &avatar) {
         auto &nav = Navigation::instance();
         if (nav.findUser(username)) {
             QMessageBox::warning(this, tr("Registro"),
@@ -283,8 +305,7 @@ void MainWindow::handleRegisterRequested()
         }
 
         try {
-            QImage emptyAvatar;
-            User user(username, email, password, emptyAvatar, birthdate);
+            User user(username, email, password, avatar, birthdate);
             nav.addUser(user);
             userAgent.login(username, password, nullptr); // auto-login suave tras registro
             updateUserActionIcon();

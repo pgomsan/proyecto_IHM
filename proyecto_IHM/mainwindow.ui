@@ -11,13 +11,28 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Navegación — Carta del Estrecho</string>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
     <string>toolBar</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
@@ -32,7 +47,6 @@
    <addaction name="separator"/>
    <addaction name="actionzoom_in"/>
    <addaction name="actionzoom_out"/>
-   <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="actiondibujar_punto"/>
    <addaction name="actiondibujar_linea"/>
@@ -55,7 +69,10 @@
      <normaloff>:/icons/magnifier-zoom-in.png</normaloff>:/icons/magnifier-zoom-in.png</iconset>
    </property>
    <property name="text">
-    <string>zoom_in</string>
+    <string>Zoom +</string>
+   </property>
+   <property name="toolTip">
+    <string>Acercar</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -67,7 +84,10 @@
      <normaloff>:/icons/magnifier-zoom-out.png</normaloff>:/icons/magnifier-zoom-out.png</iconset>
    </property>
    <property name="text">
-    <string>zoom_out</string>
+    <string>Zoom −</string>
+   </property>
+   <property name="toolTip">
+    <string>Alejar</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -79,7 +99,10 @@
      <normaloff>:/icons/user-silhouette-question.png</normaloff>:/icons/user-silhouette-question.png</iconset>
    </property>
    <property name="text">
-    <string>menu_usuario</string>
+    <string>Usuario</string>
+   </property>
+   <property name="toolTip">
+    <string>Perfil y sesión</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -91,7 +114,10 @@
      <normaloff>:/icons/clock-history.png</normaloff>:/icons/clock-history.png</iconset>
    </property>
    <property name="text">
-    <string>historial</string>
+    <string>Historial</string>
+   </property>
+   <property name="toolTip">
+    <string>Ver resultados</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -106,7 +132,7 @@
     <string>Preguntas</string>
    </property>
    <property name="toolTip">
-    <string>Preguntas</string>
+    <string>Abrir banco de preguntas</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -118,7 +144,10 @@
      <normaloff>:/icons/color.png</normaloff>:/icons/color.png</iconset>
    </property>
    <property name="text">
-    <string>colores</string>
+    <string>Color</string>
+   </property>
+   <property name="toolTip">
+    <string>Elegir color</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -130,7 +159,10 @@
      <normaloff>:/icons/eraser.png</normaloff>:/icons/eraser.png</iconset>
    </property>
    <property name="text">
-    <string>borrador</string>
+    <string>Borrar</string>
+   </property>
+   <property name="toolTip">
+    <string>Borrador</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -142,7 +174,10 @@
      <normaloff>:/icons/ruler.svg</normaloff>:/icons/ruler.svg</iconset>
    </property>
    <property name="text">
-    <string>regla</string>
+    <string>Regla</string>
+   </property>
+   <property name="toolTip">
+    <string>Medir distancia</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -154,7 +189,10 @@
      <normaloff>:/icons/compass_leg.svg</normaloff>:/icons/compass_leg.svg</iconset>
    </property>
    <property name="text">
-    <string>compas</string>
+    <string>Compás</string>
+   </property>
+   <property name="toolTip">
+    <string>Medir con compás</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -166,7 +204,10 @@
      <normaloff>:/icons/transportador.svg</normaloff>:/icons/transportador.svg</iconset>
    </property>
    <property name="text">
-    <string>transportador</string>
+    <string>Transportador</string>
+   </property>
+   <property name="toolTip">
+    <string>Medir o trazar ángulo</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -178,7 +219,10 @@
      <normaloff>:/icons/pointer.png</normaloff>:/icons/pointer.png</iconset>
    </property>
    <property name="text">
-    <string>puntos_mapa</string>
+    <string>Coords</string>
+   </property>
+   <property name="toolTip">
+    <string>Mostrar coordenadas de puntos</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -190,7 +234,10 @@
      <normaloff>:/icons/arrow-circle.png</normaloff>:/icons/arrow-circle.png</iconset>
    </property>
    <property name="text">
-    <string>reset</string>
+    <string>Limpiar</string>
+   </property>
+   <property name="toolTip">
+    <string>Limpiar la carta</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -202,7 +249,10 @@
      <normaloff>:/icons/punto.png</normaloff>:/icons/punto.png</iconset>
    </property>
    <property name="text">
-    <string>dibujar_punto</string>
+    <string>Punto</string>
+   </property>
+   <property name="toolTip">
+    <string>Marcar punto</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -214,7 +264,10 @@
      <normaloff>:/icons/linea.png</normaloff>:/icons/linea.png</iconset>
    </property>
    <property name="text">
-    <string>dibujar_linea</string>
+    <string>Línea</string>
+   </property>
+   <property name="toolTip">
+    <string>Dibujar línea</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -226,7 +279,10 @@
      <normaloff>:/icons/curva.png</normaloff>:/icons/curva.png</iconset>
    </property>
    <property name="text">
-    <string>dibujar_curva</string>
+    <string>Arco</string>
+   </property>
+   <property name="toolTip">
+    <string>Dibujar arco</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -244,7 +300,10 @@
      <normaloff>:/icons/anadir-texto.png</normaloff>:/icons/anadir-texto.png</iconset>
    </property>
    <property name="text">
-    <string>anadir-texto</string>
+    <string>Texto</string>
+   </property>
+   <property name="toolTip">
+    <string>Añadir anotación</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -260,6 +319,9 @@
    </property>
    <property name="text">
     <string>Pregunta aleatoria</string>
+   </property>
+   <property name="toolTip">
+    <string>Abrir una pregunta al azar</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

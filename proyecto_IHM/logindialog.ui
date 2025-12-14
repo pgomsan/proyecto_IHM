@@ -13,33 +13,26 @@
   <property name="windowTitle">
    <string>Iniciar sesión</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>10</number>
+ <layout class="QVBoxLayout" name="verticalLayout">
+  <property name="spacing">
+    <number>16</number>
    </property>
    <property name="leftMargin">
-    <number>16</number>
+    <number>24</number>
    </property>
    <property name="topMargin">
-    <number>16</number>
+    <number>24</number>
    </property>
    <property name="rightMargin">
-    <number>16</number>
+    <number>24</number>
    </property>
    <property name="bottomMargin">
-    <number>16</number>
+    <number>24</number>
    </property>
    <item>
     <layout class="QHBoxLayout" name="titleLayout">
      <item>
-      <widget class="QLabel" name="titleLabel">
-       <property name="font">
-        <font>
-         <pointsize>14</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
+     <widget class="QLabel" name="titleLabel">
        <property name="text">
         <string>Iniciar sesión</string>
        </property>
@@ -67,122 +60,152 @@
    </layout>
   </item>
    <item>
-    <widget class="QLabel" name="usernameLabel">
-     <property name="text">
-      <string>Usuario</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLineEdit" name="usernameLineEdit">
-     <property name="placeholderText">
-      <string>Introduce tu usuario</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="passwordLabel">
-     <property name="text">
-      <string>Contraseña</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="passwordLayout">
-     <item>
-      <widget class="QLineEdit" name="passwordLineEdit">
-       <property name="placeholderText">
-        <string>Introduce tu contraseña</string>
-       </property>
-       <property name="echoMode">
-        <enum>QLineEdit::Password</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="togglePasswordButton">
-       <property name="toolTip">
-        <string>Mostrar/ocultar contraseña</string>
-       </property>
-       <property name="text">
-        <string>Ver</string>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="confirmLayout">
-     <item>
-      <spacer name="confirmSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Expanding</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="confirmButton">
-       <property name="text">
-        <string>Confirmar</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="separatorLayout">
-     <item>
-      <widget class="Line" name="lineLeft">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="orLabel">
-       <property name="text">
-        <string>o</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="Line" name="lineRight">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QPushButton" name="registerButton">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-weight: bold; padding: 8px; background-color: #e0e0e0;</string>
-     </property>
-     <property name="text">
-      <string>Registrarse</string>
-     </property>
+   <widget class="QFrame" name="cardFrame">
+     <layout class="QVBoxLayout" name="cardLayout">
+      <property name="leftMargin">
+       <number>22</number>
+      </property>
+      <property name="topMargin">
+       <number>22</number>
+      </property>
+      <property name="rightMargin">
+       <number>22</number>
+      </property>
+      <property name="bottomMargin">
+       <number>22</number>
+      </property>
+      <property name="spacing">
+       <number>14</number>
+      </property>
+      <item>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="labelAlignment">
+         <set>Qt::AlignRight|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment">
+         <set>Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <property name="horizontalSpacing">
+         <number>16</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>12</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="usernameLabel">
+          <property name="text">
+           <string>Usuario</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="usernameLineEdit">
+          <property name="placeholderText">
+           <string>Introduce tu usuario</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="passwordLabel">
+          <property name="text">
+           <string>Contraseña</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QWidget" name="passwordContainer">
+          <layout class="QHBoxLayout" name="passwordLayout">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLineEdit" name="passwordLineEdit">
+             <property name="placeholderText">
+              <string>Introduce tu contraseña</string>
+             </property>
+             <property name="echoMode">
+              <enum>QLineEdit::Password</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+           <widget class="QToolButton" name="togglePasswordButton">
+             <property name="toolTip">
+              <string>Mostrar/ocultar contraseña</string>
+             </property>
+             <property name="text">
+              <string>Ver</string>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="actionsLayout">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item>
+         <spacer name="actionsSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="confirmButton">
+          <property name="default">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Entrar</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="registerHintLabel">
+        <property name="text">
+         <string>¿No tienes cuenta?</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="registerButton">
+        <property name="text">
+         <string>Crear cuenta</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

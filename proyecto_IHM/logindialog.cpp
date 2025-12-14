@@ -3,7 +3,20 @@
 
 #include <QMessageBox>
 #include <QLineEdit>
+#include <QStyle>
 #include <QToolButton>
+
+namespace {
+void repolish(QWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+    widget->style()->unpolish(widget);
+    widget->style()->polish(widget);
+    widget->update();
+}
+}
 
 LoginDialog::LoginDialog(QWidget *parent) :
     QDialog(parent),
@@ -12,6 +25,20 @@ LoginDialog::LoginDialog(QWidget *parent) :
     ui->setupUi(this);
     setModal(true);
     setWindowTitle(tr("Iniciar sesión"));
+
+    ui->titleLabel->setProperty("role", "title");
+    ui->cardFrame->setProperty("cssClass", "card");
+    ui->togglePasswordButton->setProperty("role", "subtle");
+    ui->confirmButton->setProperty("role", "primary");
+    ui->registerHintLabel->setProperty("role", "hint");
+    ui->registerButton->setProperty("role", "secondary");
+
+    repolish(ui->titleLabel);
+    repolish(ui->cardFrame);
+    repolish(ui->togglePasswordButton);
+    repolish(ui->confirmButton);
+    repolish(ui->registerHintLabel);
+    repolish(ui->registerButton);
 
     ui->passwordLineEdit->setEchoMode(QLineEdit::Password);
     ui->togglePasswordButton->setCheckable(true);

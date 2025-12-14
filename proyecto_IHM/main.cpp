@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     // Load and apply stylesheet
-    QFile file(":/resources/stylesheet.qss");
+    QFile file(":/stylesheet.qss");
     if(file.open(QFile::ReadOnly | QFile::Text))
     {
         QTextStream stream(&file);

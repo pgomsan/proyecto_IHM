@@ -39,6 +39,7 @@ private slots:
     void on_actionzoom_in_triggered();
     void on_actionzoom_out_triggered();
     void on_actionmenu_usuario_triggered();
+    void on_actionhistorial_triggered();
     void on_actionreset_triggered();
     void on_actioncolores_triggered();
     void on_actionMiMenu_preguntas_triggered();

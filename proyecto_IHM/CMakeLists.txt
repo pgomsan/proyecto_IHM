@@ -27,6 +27,9 @@ qt_add_executable(proyecto_IHM
     profiledialog.cpp
     profiledialog.h
     profiledialog.ui
+    historydialog.cpp
+    historydialog.h
+    historydialog.ui
     questiondialog.cpp
     questiondialog.h
     questionbankdialog.cpp

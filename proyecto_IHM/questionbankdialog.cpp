@@ -18,6 +18,7 @@ QuestionBankDialog::QuestionBankDialog(const QVector<Problem> &problems, QWidget
 
     auto *layout = new QVBoxLayout(this);
     auto *title = new QLabel(tr("Selecciona el enunciado que quieras practicar"), this);
+    title->setProperty("role", "title");
     title->setWordWrap(true);
     layout->addWidget(title);
 
@@ -33,6 +34,7 @@ QuestionBankDialog::QuestionBankDialog(const QVector<Problem> &problems, QWidget
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, this);
     QPushButton *openButton = buttons->addButton(tr("Abrir pregunta"), QDialogButtonBox::ActionRole);
+    openButton->setProperty("role", "primary");
     connect(openButton, &QPushButton::clicked, this, &QuestionBankDialog::handleOpenSelected);
     connect(buttons, &QDialogButtonBox::rejected, this, &QuestionBankDialog::reject);
     layout->addWidget(buttons);
