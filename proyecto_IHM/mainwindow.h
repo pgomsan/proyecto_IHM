@@ -90,6 +90,7 @@ private:
         QGraphicsProxyWidget *proxy = nullptr;
         QWidget *container = nullptr;
         QTextEdit *editor = nullptr;
+        QColor textColor = Qt::black;
         bool resizing = false;
         QPoint resizeStartPos;
         QSize resizeStartSize;
