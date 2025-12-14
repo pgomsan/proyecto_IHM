@@ -38,6 +38,8 @@
 #include <QSizePolicy>
 #include <QTextCharFormat>
 #include <QCursor>
+#include <QPointer>
+#include <cmath>
 #include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -482,6 +484,41 @@ void MainWindow::applyColorToActiveText(const QColor &color)
     box->editor->setTextCursor(cursor);
 }
 
+void MainWindow::autoResizeTextBox(TextBoxWidgets *box)
+{
+    if (!box || box->resizing || !box->container || !box->editor || !box->proxy) {
+        return;
+    }
+
+    const int currentWidth = box->container->width();
+    if (currentWidth <= 0) {
+        return;
+    }
+
+    // Force document layout to wrap to current viewport width for correct height.
+    const int viewportWidth = box->editor->viewport()->width();
+    if (viewportWidth > 0) {
+        box->editor->document()->setTextWidth(viewportWidth);
+    }
+
+    const QMargins margins = box->container->contentsMargins();
+    const int layoutPadding = margins.top() + margins.bottom();
+
+    const QSizeF docSize = box->editor->document()->size();
+    const int docHeight = static_cast<int>(std::ceil(docSize.height()));
+
+    const int minHeight = 90;
+    const int maxHeight = 520;
+    const int targetHeight = std::clamp(docHeight + layoutPadding + 24, minHeight, maxHeight);
+
+    if (box->container->height() == targetHeight) {
+        return;
+    }
+
+    box->container->resize(currentWidth, targetHeight);
+    box->proxy->resize(box->container->size());
+}
+
 QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
 {
     auto *container = new QWidget;
@@ -505,7 +542,21 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
     editor->setFrameShape(QFrame::NoFrame);
     editor->setTextColor(m_textColor);
     editor->setStyleSheet("background: transparent;");
-    editor->setFontPointSize(16.0);
+    editor->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    editor->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    {
+        QFont font = editor->font();
+        font.setPointSizeF(64.0);
+        editor->setFont(font);
+        editor->document()->setDefaultFont(font);
+
+        QTextCursor cursor(editor->document());
+        cursor.select(QTextCursor::Document);
+        QTextCharFormat fmt;
+        fmt.setFontPointSize(64.0);
+        cursor.mergeCharFormat(fmt);
+        editor->mergeCurrentCharFormat(fmt);
+    }
 
     layout->addWidget(editor);
 
@@ -526,8 +577,19 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
         editor
     });
 
+    {
+        QPointer<QGraphicsProxyWidget> proxyPtr(proxy);
+        connect(editor->document(), &QTextDocument::contentsChanged, this, [this, proxyPtr]() {
+            if (!proxyPtr) {
+                return;
+            }
+            autoResizeTextBox(findTextBox(proxyPtr));
+        });
+    }
+
     selectTextBox(proxy);
     editor->setFocus();
+    autoResizeTextBox(findTextBox(proxy));
     return proxy;
 }
 
