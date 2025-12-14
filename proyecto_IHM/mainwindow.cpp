@@ -58,6 +58,9 @@ MainWindow::MainWindow(QWidget *parent)
     view->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     view->setResizeAnchor(QGraphicsView::AnchorViewCenter);
     view->setDragMode(QGraphicsView::ScrollHandDrag);
+    view->setFrameShape(QFrame::NoFrame);
+    view->setFocusPolicy(Qt::StrongFocus);
+    view->viewport()->setFocusPolicy(Qt::StrongFocus);
 
     auto *mainLayout = new QVBoxLayout(ui->centralwidget);
     mainLayout->setContentsMargins(8, 8, 8, 8);
@@ -957,16 +960,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         if (auto *box = findTextBox(widget)) {
             if (event->type() == QEvent::MouseButtonPress) {
                 auto *e = static_cast<QMouseEvent*>(event);
-                if (e->button() == Qt::RightButton && box->proxy && view) {
-                    box->moving = true;
-                    box->resizing = false;
-                    const QPoint viewPos = view->mapFromGlobal(widget->mapToGlobal(e->pos()));
-                    box->moveStartScenePos = view->mapToScene(viewPos);
-                    box->moveStartProxyPos = box->proxy->pos();
-                    widget->setCursor(Qt::ClosedHandCursor);
-                    selectTextBox(box->proxy);
-                    return true;
-                }
                 if (e->button() == Qt::LeftButton) {
                     const QRect handleRect(widget->width() - 18,
                                            widget->height() - 18,
@@ -995,18 +988,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                                        widget->height() - 18,
                                        18,
                                        18);
-                if (box->moving && (e->buttons() & Qt::RightButton) && box->proxy && view) {
-                    const QPoint viewPos = view->mapFromGlobal(widget->mapToGlobal(e->pos()));
-                    const QPointF scenePos = view->mapToScene(viewPos);
-                    const QPointF delta = scenePos - box->moveStartScenePos;
-                    box->proxy->setPos(box->moveStartProxyPos + delta);
-                    return true;
-                }
                 if (box->resizing) {
                     const QPoint delta = e->pos() - box->resizeStartPos;
                     QSize newSize = box->resizeStartSize + QSize(delta.x(), delta.y());
-                    newSize.setWidth(std::max(newSize.width(), 140));
-                    newSize.setHeight(std::max(newSize.height(), 90));
+                    newSize.setWidth(std::max(newSize.width(), widget->minimumWidth()));
+                    newSize.setHeight(std::max(newSize.height(), widget->minimumHeight()));
                     widget->resize(newSize);
                     if (box->proxy) {
                         box->proxy->resize(newSize);
@@ -1037,11 +1023,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                 }
             } else if (event->type() == QEvent::MouseButtonRelease) {
                 auto *e = static_cast<QMouseEvent*>(event);
-                if (e->button() == Qt::RightButton && box->moving) {
-                    box->moving = false;
-                    widget->setCursor(Qt::ArrowCursor);
-                    return true;
-                }
                 if (e->button() == Qt::LeftButton && box->resizing) {
                     box->resizing = false;
                     widget->setCursor(Qt::ArrowCursor);

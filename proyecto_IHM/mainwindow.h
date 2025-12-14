@@ -91,12 +91,9 @@ private:
         QWidget *container = nullptr;
         QTextEdit *editor = nullptr;
         bool resizing = false;
-        bool moving = false;
         QPoint resizeStartPos;
         QSize resizeStartSize;
         double resizeStartFontSize = 16.0;
-        QPointF moveStartScenePos;
-        QPointF moveStartProxyPos;
     };
     QVector<TextBoxWidgets> m_textBoxes;
     QGraphicsProxyWidget *m_activeTextBox = nullptr;
