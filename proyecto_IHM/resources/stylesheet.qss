@@ -11,7 +11,7 @@
 /* General Widget Styling */
 * {
     color: #1F2A35;
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-family: "Inter", "Noto Sans", "DejaVu Sans", "Helvetica Neue", "Helvetica", Arial, sans-serif;
 }
 
 /* Main Window and Dialogs */
