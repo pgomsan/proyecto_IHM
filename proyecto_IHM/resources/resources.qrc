@@ -22,5 +22,9 @@
         <file>icons/anadir-texto.png</file>
         <file>icons/arrow-switch.png</file>
         <file>icons/sinfotodeperfil.png</file>
+        <file>fonts/Inter-Regular.ttf</file>
+        <file>fonts/Inter-SemiBold.ttf</file>
+        <file>fonts/Inter-Bold.ttf</file>
+        <file>fonts/Inter-LICENSE.txt</file>
     </qresource>
 </RCC>
