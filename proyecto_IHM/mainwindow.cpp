@@ -360,6 +360,18 @@ void MainWindow::openProblemDialog(const Problem &problem)
     auto *dialog = new ProblemDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->setProblem(problem);
+    QPointer<ProblemDialog> safeDialog(dialog);
+    connect(dialog, &ProblemDialog::nextRequested, this, [safeDialog]() {
+        if (!safeDialog) {
+            return;
+        }
+        const auto &problems = Navigation::instance().problems();
+        if (problems.isEmpty()) {
+            return;
+        }
+        const int idx = QRandomGenerator::global()->bounded(problems.size());
+        safeDialog->setProblem(problems.at(idx));
+    });
     if (isVisible()) {
         const QPoint topRightGlobal = mapToGlobal(QPoint(width(), 0));
         dialog->move(topRightGlobal.x() - dialog->width() - 12, topRightGlobal.y() + 60);

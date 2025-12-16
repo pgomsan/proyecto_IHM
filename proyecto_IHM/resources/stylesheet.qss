@@ -46,6 +46,16 @@ QLabel[validationState="ok"] {
     font-weight: 600;
 }
 
+QRadioButton[validationState="error"] {
+    color: #FF6B6B;
+    font-weight: 700;
+}
+
+QRadioButton[validationState="ok"] {
+    color: #2E7D32;
+    font-weight: 700;
+}
+
 QLabel[role="statValue"] {
     font-size: 22px;
     font-weight: 800;
