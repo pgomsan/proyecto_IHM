@@ -444,6 +444,32 @@ MainWindow::TextBoxWidgets *MainWindow::findTextBox(QWidget *container)
     return nullptr;
 }
 
+bool MainWindow::eraseTextBoxItem(QGraphicsItem *item)
+{
+    QGraphicsItem *currentItem = item;
+    while (currentItem) {
+        auto *proxy = qgraphicsitem_cast<QGraphicsProxyWidget*>(currentItem);
+        if (proxy) {
+            for (int i = 0; i < m_textBoxes.size(); ++i) {
+                if (m_textBoxes[i].proxy == proxy) {
+                    if (m_activeTextBox == proxy) {
+                        m_activeTextBox = nullptr;
+                    }
+                    m_textBoxes.removeAt(i);
+
+                    const QSignalBlocker blocker(scene);
+                    scene->removeItem(proxy);
+                    proxy->deleteLater();
+                    return true;
+                }
+            }
+        }
+        currentItem = currentItem->parentItem();
+    }
+
+    return false;
+}
+
 void MainWindow::selectTextBox(QGraphicsProxyWidget *proxy)
 {
     m_activeTextBox = proxy;
@@ -946,6 +972,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     view->transform());
 
                 for (QGraphicsItem *hitItem : hitItems) {
+                    if (eraseTextBoxItem(hitItem)) {
+                        return true;
+                    }
                     if (dibujos.eraseArcItem(hitItem, scenePos)) {
                         refreshPointPopups();
                         return true;
