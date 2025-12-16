@@ -6,10 +6,13 @@
 #include <QMessageBox>
 #include <QPixmap>
 #include <QImageReader>
+#include <QSize>
 #include <QStyle>
 #include <QToolButton>
 #include <QRegularExpression>
 #include <QStringList>
+
+#include "uiiconutils.h"
 
 #include "navdb/lib/include/navigation.h"
 
@@ -87,7 +90,12 @@ RegisterDialog::RegisterDialog(QWidget *parent) :
     ui->passwordLineEdit->setEchoMode(QLineEdit::Password);
     ui->togglePasswordButton->setCheckable(true);
     ui->togglePasswordButton->setChecked(false);
-    ui->togglePasswordButton->setText(tr("Ver"));
+    ui->togglePasswordButton->setText(QString());
+    ui->togglePasswordButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    ui->togglePasswordButton->setIconSize(QSize(18, 18));
+    ui->togglePasswordButton->setFixedSize(QSize(40, 32));
+    ui->togglePasswordButton->setIcon(makeFixedColorSvgIcon(":/icons/eye.svg", QSize(18, 18)));
+    ui->togglePasswordButton->setToolTip(tr("Mostrar contraseña"));
 
     ui->birthdateEdit->setDisplayFormat("yyyy-MM-dd");
     ui->birthdateEdit->setCalendarPopup(true);
@@ -131,7 +139,10 @@ void RegisterDialog::togglePasswordVisibility(bool checked)
 {
     ui->passwordLineEdit->setEchoMode(
         checked ? QLineEdit::Normal : QLineEdit::Password);
-    ui->togglePasswordButton->setText(checked ? tr("Ocultar") : tr("Ver"));
+    ui->togglePasswordButton->setIcon(makeFixedColorSvgIcon(
+        checked ? ":/icons/eye-off.svg" : ":/icons/eye.svg", QSize(18, 18)));
+    ui->togglePasswordButton->setToolTip(
+        checked ? tr("Ocultar contraseña") : tr("Mostrar contraseña"));
 }
 
 void RegisterDialog::chooseAvatar()
