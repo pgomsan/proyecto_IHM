@@ -1,10 +1,13 @@
-#include "logindialog.h"
+﻿#include "logindialog.h"
 #include "ui_logindialog.h"
 
-#include <QMessageBox>
 #include <QLineEdit>
+#include <QMessageBox>
+#include <QSize>
 #include <QStyle>
 #include <QToolButton>
+
+#include "uiiconutils.h"
 
 namespace {
 void repolish(QWidget *widget)
@@ -43,7 +46,12 @@ LoginDialog::LoginDialog(QWidget *parent) :
     ui->passwordLineEdit->setEchoMode(QLineEdit::Password);
     ui->togglePasswordButton->setCheckable(true);
     ui->togglePasswordButton->setChecked(false);
-    ui->togglePasswordButton->setText(tr("Ver"));
+    ui->togglePasswordButton->setText(QString());
+    ui->togglePasswordButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    ui->togglePasswordButton->setIconSize(QSize(18, 18));
+    ui->togglePasswordButton->setFixedSize(QSize(40, 32));
+    ui->togglePasswordButton->setIcon(makeFixedColorSvgIcon(":/icons/eye.svg", QSize(18, 18)));
+    ui->togglePasswordButton->setToolTip(tr("Mostrar contraseña"));
 
     connect(ui->togglePasswordButton, &QToolButton::toggled,
             this, &LoginDialog::togglePasswordVisibility);
@@ -78,5 +86,8 @@ void LoginDialog::togglePasswordVisibility(bool checked)
 {
     ui->passwordLineEdit->setEchoMode(
         checked ? QLineEdit::Normal : QLineEdit::Password);
-    ui->togglePasswordButton->setText(checked ? tr("Ocultar") : tr("Ver"));
+    ui->togglePasswordButton->setIcon(makeFixedColorSvgIcon(
+        checked ? ":/icons/eye-off.svg" : ":/icons/eye.svg", QSize(18, 18)));
+    ui->togglePasswordButton->setToolTip(
+        checked ? tr("Ocultar contraseña") : tr("Mostrar contraseña"));
 }

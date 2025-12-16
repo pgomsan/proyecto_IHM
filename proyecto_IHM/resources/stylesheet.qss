@@ -209,6 +209,19 @@ QToolButton:checked {
     color: #FFFFFF;
 }
 
+QToolButton#togglePasswordButton:checked,
+QToolButton#togglePasswordButton:checked:pressed {
+    background-color: transparent;
+    border: 1px solid rgba(53, 92, 125, 0.25);
+    color: #1F2A35;
+}
+
+QToolButton#togglePasswordButton:checked:hover {
+    background-color: rgba(53, 92, 125, 0.08);
+    border: 1px solid rgba(53, 92, 125, 0.25);
+    color: #1F2A35;
+}
+
 QToolButton[role="subtle"] {
     border: 1px solid rgba(53, 92, 125, 0.25);
     padding: 6px 10px;
@@ -216,6 +229,19 @@ QToolButton[role="subtle"] {
 
 QToolButton[role="subtle"]:hover {
     background-color: rgba(53, 92, 125, 0.08);
+}
+
+QToolButton[role="subtle"]:checked,
+QToolButton[role="subtle"]:checked:pressed {
+    background-color: transparent;
+    border: 1px solid rgba(53, 92, 125, 0.25);
+    color: #1F2A35;
+}
+
+QToolButton[role="subtle"]:checked:hover {
+    background-color: rgba(53, 92, 125, 0.08);
+    border: 1px solid rgba(53, 92, 125, 0.25);
+    color: #1F2A35;
 }
 
 /* Lists (selection / hover) */

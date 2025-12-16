@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>LoginDialog</class>
  <widget class="QDialog" name="LoginDialog">
@@ -13,8 +13,8 @@
   <property name="windowTitle">
    <string>Iniciar sesión</string>
   </property>
- <layout class="QVBoxLayout" name="verticalLayout">
-  <property name="spacing">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
     <number>16</number>
    </property>
    <property name="leftMargin">
@@ -32,7 +32,7 @@
    <item>
     <layout class="QHBoxLayout" name="titleLayout">
      <item>
-     <widget class="QLabel" name="titleLabel">
+      <widget class="QLabel" name="titleLabel">
        <property name="text">
         <string>Iniciar sesión</string>
        </property>
@@ -42,7 +42,7 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer" >
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -57,10 +57,10 @@
        </property>
       </spacer>
      </item>
-   </layout>
-  </item>
+    </layout>
+   </item>
    <item>
-   <widget class="QFrame" name="cardFrame">
+    <widget class="QFrame" name="cardFrame">
      <layout class="QVBoxLayout" name="cardLayout">
       <property name="leftMargin">
        <number>22</number>
@@ -82,7 +82,7 @@
         <property name="labelAlignment">
          <set>Qt::AlignRight|Qt::AlignVCenter</set>
         </property>
-       <property name="formAlignment">
+        <property name="formAlignment">
          <set>Qt::AlignHCenter|Qt::AlignTop</set>
         </property>
         <property name="fieldGrowthPolicy">
@@ -198,7 +198,7 @@
             </widget>
            </item>
            <item>
-           <widget class="QToolButton" name="togglePasswordButton">
+            <widget class="QToolButton" name="togglePasswordButton">
              <property name="toolTip">
               <string>Mostrar/ocultar contraseña</string>
              </property>
@@ -242,21 +242,111 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>Entrar</string>
+           <string>Iniciar sesión</string>
           </property>
          </widget>
         </item>
        </layout>
       </item>
       <item>
-       <widget class="QLabel" name="registerHintLabel">
-        <property name="text">
-         <string>¿No tienes cuenta?</string>
+       <layout class="QHBoxLayout" name="registerDividerLayout">
+        <property name="spacing">
+         <number>14</number>
         </property>
-       </widget>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QFrame" name="registerDividerLeft">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>70</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::HLine</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #DCE3EF;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="registerHintLabel">
+          <property name="alignment">
+           <set>Qt::AlignHCenter|Qt::AlignVCenter</set>
+          </property>
+          <property name="text">
+           <string>¿No tienes cuenta?</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="registerDividerRight">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>70</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::HLine</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #DCE3EF;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
-      <item>
+      <item alignment="Qt::AlignHCenter">
        <widget class="QPushButton" name="registerButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>220</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>260</width>
+          <height>16777215</height>
+         </size>
+        </property>
         <property name="text">
          <string>Crear cuenta</string>
         </property>
