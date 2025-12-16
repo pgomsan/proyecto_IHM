@@ -430,14 +430,7 @@
          <number>10</number>
         </property>
         <item>
-         <widget class="QPushButton" name="cancelButton">
-          <property name="text">
-           <string>Cancelar</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="actionsSpacer">
+         <spacer name="actionsSpacerLeft">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -451,6 +444,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="cancelButton">
+          <property name="text">
+           <string>Cancelar</string>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="confirmButton">
