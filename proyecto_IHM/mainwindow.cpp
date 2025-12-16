@@ -175,9 +175,30 @@ MainWindow::MainWindow(QWidget *parent)
     updateUserActionIcon();
 
     // Configuracion de la Tool Bar
-    ui->toolBar->setIconSize(QSize(45, 45));
+    ui->toolBar->setIconSize(QSize(56, 56));
     ui->toolBar->setMovable(false);
     ui->toolBar->setFloatable(false);
+    ui->actioncerrar_sesion->setText(tr("Cerrar sesión"));
+    ui->actioncerrar_sesion->setToolTip(tr("Cerrar sesión"));
+    ui->actioncerrar_sesion->setIcon(QIcon(":/icons/logout.svg"));
+    ui->actioncerrar_sesion->setIconVisibleInMenu(false);
+
+    auto *toolBarSpacer = new QWidget(ui->toolBar);
+    toolBarSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    m_logoutSpacerAction = ui->toolBar->addWidget(toolBarSpacer);
+
+    m_logoutButton = new QToolButton(ui->toolBar);
+    m_logoutButton->setAutoRaise(true);
+    m_logoutButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    m_logoutButton->setIconSize(QSize(40, 40));
+    m_logoutButton->setDefaultAction(ui->actioncerrar_sesion);
+    m_logoutButtonAction = ui->toolBar->addWidget(m_logoutButton);
+
+    auto *logoutRightPad = new QWidget(ui->toolBar);
+    logoutRightPad->setFixedWidth(14);
+    m_logoutRightPadAction = ui->toolBar->addWidget(logoutRightPad);
+
+    updateUserActionIcon();
 
     // Configuracion de dibujos
     // Punto
@@ -320,6 +341,20 @@ void MainWindow::updateUserActionIcon()
     ui->actionhistorial->setEnabled(loggedIn);
     ui->actionMiMenu_preguntas->setEnabled(loggedIn);
     ui->actionPregunta_aleatoria->setEnabled(loggedIn);
+    ui->actioncerrar_sesion->setEnabled(loggedIn);
+    ui->actioncerrar_sesion->setVisible(loggedIn);
+    if (m_logoutSpacerAction) {
+        m_logoutSpacerAction->setVisible(loggedIn);
+    }
+    if (m_logoutButtonAction) {
+        m_logoutButtonAction->setVisible(loggedIn);
+    }
+    if (m_logoutRightPadAction) {
+        m_logoutRightPadAction->setVisible(loggedIn);
+    }
+    if (m_logoutButton) {
+        m_logoutButton->setVisible(loggedIn);
+    }
 }
 
 //Registro de usuario
@@ -346,10 +381,6 @@ void MainWindow::on_actionmenu_usuario_triggered()
                 QMessageBox::critical(this, tr("Error de base de datos"),
                                       tr("No se pudo actualizar el perfil: %1").arg(ex.what()));
             }
-        });
-        connect(&dialog, &ProfileDialog::logoutRequested, this, [this]() {
-            userAgent.logout();
-            updateUserActionIcon();
         });
         dialog.exec();
         return;
@@ -1268,4 +1299,10 @@ void MainWindow::setCompassVisible(bool visible)
                      kCompassSize,
                      QPoint(20, 280),
                      visible);
+}
+
+void MainWindow::on_actioncerrar_sesion_triggered()
+{
+    userAgent.logout();
+    updateUserActionIcon();
 }

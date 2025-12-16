@@ -26,6 +26,8 @@ class QGraphicsItem;
 class QGraphicsProxyWidget;
 class QTextEdit;
 class QWidget;
+class QToolButton;
+class QAction;
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +49,7 @@ private slots:
     void on_actionMiMenu_preguntas_triggered();
     void on_actionPregunta_aleatoria_triggered();
     void on_actionpuntos_mapa_toggled(bool checked);
+    void on_actioncerrar_sesion_triggered();
     void showRandomProblem();
     void openQuestionBank();
     void openProblemDialog(const Problem &problem);
@@ -82,6 +85,10 @@ private:
     Tool* m_protractor = nullptr;
     Tool* m_ruler = nullptr;
     Tool* m_compass = nullptr;
+    QToolButton *m_logoutButton = nullptr;
+    QAction *m_logoutSpacerAction = nullptr;
+    QAction *m_logoutButtonAction = nullptr;
+    QAction *m_logoutRightPadAction = nullptr;
     void setProtractorVisible(bool visible);
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
