@@ -243,7 +243,6 @@ void MainWindow::on_actionmenu_usuario_triggered()
             updated.setAvatar(avatar);
             try {
                 nav.updateUser(updated);
-                QMessageBox::information(this, tr("Perfil"), tr("Perfil actualizado."));
             } catch (const NavDAOException &ex) {
                 QMessageBox::critical(this, tr("Error de base de datos"),
                                       tr("No se pudo actualizar el perfil: %1").arg(ex.what()));
@@ -252,7 +251,6 @@ void MainWindow::on_actionmenu_usuario_triggered()
         connect(&dialog, &ProfileDialog::logoutRequested, this, [this]() {
             userAgent.logout();
             updateUserActionIcon();
-            QMessageBox::information(this, tr("Sesion"), tr("Has cerrado sesion."));
         });
         dialog.exec();
         return;
@@ -293,9 +291,6 @@ void MainWindow::handleLoginRequested(const QString &username, const QString &pa
         return;
     }
     updateUserActionIcon();
-    const User *user = userAgent.currentUser();
-    QMessageBox::information(this, tr("Inicio de sesion"),
-                             tr("Bienvenido, %1").arg(user ? user->nickName() : username));
 }
 void MainWindow::handleRegisterRequested()
 {
@@ -315,8 +310,6 @@ void MainWindow::handleRegisterRequested()
             nav.addUser(user);
             userAgent.login(username, password, nullptr); // auto-login suave tras registro
             updateUserActionIcon();
-            QMessageBox::information(this, tr("Registro"),
-                                     tr("Usuario %1 creado.").arg(username));
         } catch (const NavDAOException &ex) {
             QMessageBox::critical(this, tr("Error de base de datos"),
                                   tr("No se pudo registrar: %1").arg(ex.what()));
