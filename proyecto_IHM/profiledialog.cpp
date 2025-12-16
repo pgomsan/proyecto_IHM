@@ -37,7 +37,6 @@ ProfileDialog::ProfileDialog(QWidget *parent) :
     ui->avatarPlaceholder->setProperty("role", "avatarPlaceholder");
     ui->usernameHintLabel->setProperty("role", "hint");
     ui->togglePasswordButton->setProperty("role", "subtle");
-    ui->logoutButton->setProperty("role", "danger");
     ui->cancelButton->setProperty("role", "secondary");
     ui->confirmButton->setProperty("role", "primary");
     ui->chooseAvatarButton->setProperty("role", "secondary");
@@ -47,7 +46,6 @@ ProfileDialog::ProfileDialog(QWidget *parent) :
     repolish(ui->avatarPlaceholder);
     repolish(ui->usernameHintLabel);
     repolish(ui->togglePasswordButton);
-    repolish(ui->logoutButton);
     repolish(ui->cancelButton);
     repolish(ui->confirmButton);
     repolish(ui->chooseAvatarButton);
@@ -72,8 +70,6 @@ ProfileDialog::ProfileDialog(QWidget *parent) :
             this, &ProfileDialog::onConfirm);
     connect(ui->cancelButton, &QPushButton::clicked,
             this, &ProfileDialog::onCancel);
-    connect(ui->logoutButton, &QPushButton::clicked,
-            this, &ProfileDialog::onLogout);
 
     updateAvatarPreview();
 }
@@ -164,10 +160,4 @@ void ProfileDialog::onConfirm()
 void ProfileDialog::onCancel()
 {
     reject();
-}
-
-void ProfileDialog::onLogout()
-{
-    emit logoutRequested();
-    accept();
 }

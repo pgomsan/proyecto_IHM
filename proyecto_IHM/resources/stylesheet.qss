@@ -209,6 +209,10 @@ QToolButton {
     color: #1F2A35;
 }
 
+QToolBar QToolButton {
+    padding: 0px;
+}
+
 QToolButton:hover {
     background-color: rgba(53, 92, 125, 0.12);
 }

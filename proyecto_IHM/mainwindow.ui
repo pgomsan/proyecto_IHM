@@ -327,6 +327,17 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actioncerrar_sesion">
+   <property name="text">
+    <string>Cerrar sesión</string>
+   </property>
+   <property name="toolTip">
+    <string>Cerrar sesión</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="resources/resources.qrc"/>

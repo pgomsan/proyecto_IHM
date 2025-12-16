@@ -24,14 +24,12 @@ signals:
                         const QString &email,
                         const QDate &birthdate,
                         const QImage &avatar);
-    void logoutRequested();
 
 private slots:
     void togglePasswordVisibility(bool checked);
     void chooseAvatar();
     void onConfirm();
     void onCancel();
-    void onLogout();
 
 private:
     Ui::ProfileDialog *ui;
