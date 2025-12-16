@@ -36,6 +36,16 @@ QLabel[role="hint"] {
     color: #5F6B7A;
 }
 
+QLabel[validationState="error"] {
+    color: #FF6B6B;
+    font-weight: 600;
+}
+
+QLabel[validationState="ok"] {
+    color: #2E7D32;
+    font-weight: 600;
+}
+
 QLabel[role="statValue"] {
     font-size: 22px;
     font-weight: 800;
@@ -61,6 +71,14 @@ QLineEdit, QTextEdit, QSpinBox, QDateEdit {
     border-radius: 4px;
     padding: 5px;
     color: #1F2A35;
+}
+
+QLineEdit[validationState="error"], QDateEdit[validationState="error"] {
+    border-color: #FF6B6B; /* Accent / error */
+}
+
+QLineEdit[validationState="ok"], QDateEdit[validationState="ok"] {
+    border-color: #2E7D32; /* success */
 }
 
 QLineEdit:focus, QTextEdit:focus, QSpinBox:focus, QDateEdit:focus {
