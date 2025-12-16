@@ -7,6 +7,7 @@
 #include <QColor>
 #include <QPoint>
 #include <QSize>
+#include <QRectF>
 #include "useragent.h"
 #include "profiledialog.h"
 #include "tool.h"
@@ -65,6 +66,7 @@ private:
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     QGraphicsView *view;
+    QRectF m_chartRect;
     Dibujos dibujos;
     UserAgent userAgent;
     void applyZoom();
@@ -93,9 +95,12 @@ private:
         QTextEdit *editor = nullptr;
         QColor textColor = Qt::black;
         bool resizing = false;
+        bool dragging = false;
         QPoint resizeStartPos;
         QSize resizeStartSize;
         double resizeStartFontSize = 16.0;
+        QPointF dragStartScenePos;
+        QPointF dragStartProxyPos;
     };
     QVector<TextBoxWidgets> m_textBoxes;
     QGraphicsProxyWidget *m_activeTextBox = nullptr;

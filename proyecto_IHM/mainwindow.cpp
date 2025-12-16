@@ -40,8 +40,105 @@
 #include <QFontMetrics>
 #include <QCursor>
 #include <QPointer>
+#include <QGraphicsSceneMouseEvent>
 #include <cmath>
 #include <algorithm>
+
+namespace {
+class ConstrainedTextProxyWidget final : public QGraphicsProxyWidget
+{
+public:
+    explicit ConstrainedTextProxyWidget(const QRectF &constraintRect)
+        : m_constraintRect(constraintRect)
+    {
+    }
+
+    void setConstraintRect(const QRectF &rect)
+    {
+        m_constraintRect = rect;
+    }
+
+protected:
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override
+    {
+        if (change == QGraphicsItem::ItemPositionChange && !m_constraintRect.isNull()) {
+            QPointF newPos = value.toPointF();
+            const QRectF bounds = boundingRect();
+            QRectF allowed = m_constraintRect.adjusted(0.0, 0.0, -bounds.width(), -bounds.height());
+            if (allowed.width() < 0.0) {
+                allowed.setLeft(m_constraintRect.left());
+                allowed.setRight(m_constraintRect.left());
+            }
+            if (allowed.height() < 0.0) {
+                allowed.setTop(m_constraintRect.top());
+                allowed.setBottom(m_constraintRect.top());
+            }
+            newPos.setX(std::clamp(newPos.x(), allowed.left(), allowed.right()));
+            newPos.setY(std::clamp(newPos.y(), allowed.top(), allowed.bottom()));
+            return newPos;
+        }
+        return QGraphicsProxyWidget::itemChange(change, value);
+    }
+
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        if (event->button() == Qt::LeftButton) {
+            const bool moveWithModifier =
+                (event->modifiers() & (Qt::AltModifier | Qt::ControlModifier));
+
+            const QRectF r = boundingRect();
+            const qreal border = 14.0;
+            const QRectF resizeHandleRect(r.right() - 18.0, r.bottom() - 18.0, 18.0, 18.0);
+            const bool isResizeHandle = resizeHandleRect.contains(event->pos());
+            const bool inBorder =
+                (event->pos().x() <= r.left() + border) ||
+                (event->pos().x() >= r.right() - border) ||
+                (event->pos().y() <= r.top() + border) ||
+                (event->pos().y() >= r.bottom() - border);
+
+            if ((moveWithModifier || inBorder) && !isResizeHandle) {
+                setSelected(true);
+                m_dragging = true;
+                m_pressScenePos = event->scenePos();
+                m_startPos = pos();
+                event->accept();
+                return;
+            }
+        }
+
+        QGraphicsProxyWidget::mousePressEvent(event);
+    }
+
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        if (m_dragging) {
+            const QPointF delta = event->scenePos() - m_pressScenePos;
+            setPos(m_startPos + delta);
+            event->accept();
+            return;
+        }
+
+        QGraphicsProxyWidget::mouseMoveEvent(event);
+    }
+
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        if (m_dragging && event->button() == Qt::LeftButton) {
+            m_dragging = false;
+            event->accept();
+            return;
+        }
+
+        QGraphicsProxyWidget::mouseReleaseEvent(event);
+    }
+
+private:
+    QRectF m_constraintRect;
+    bool m_dragging = false;
+    QPointF m_pressScenePos;
+    QPointF m_startPos;
+};
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -70,6 +167,8 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmap pm(":/images/carta_nautica.jpg");
     QGraphicsPixmapItem *item = scene->addPixmap(pm);
     item->setZValue(0);
+    m_chartRect = item->boundingRect();
+    scene->setSceneRect(m_chartRect);
 
     currentZoom = 0.20;
     applyZoom();
@@ -449,6 +548,9 @@ MainWindow::TextBoxWidgets *MainWindow::findTextBox(QWidget *container)
         if (box.container == container) {
             return &box;
         }
+        if (box.container && box.container->isAncestorOf(container)) {
+            return &box;
+        }
     }
     return nullptr;
 }
@@ -630,6 +732,10 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
     editor->setStyleSheet("background: transparent;");
     editor->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     editor->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    editor->installEventFilter(this);
+    if (editor->viewport()) {
+        editor->viewport()->installEventFilter(this);
+    }
     {
         QFont font = editor->font();
         font.setPointSizeF(64.0);
@@ -648,9 +754,11 @@ QGraphicsProxyWidget *MainWindow::createTextBoxAt(const QPointF &scenePos)
 
     container->resize(scaled(420), scaled(90));
 
-    auto *proxy = scene->addWidget(container);
+    auto *proxy = new ConstrainedTextProxyWidget(m_chartRect);
+    proxy->setWidget(container);
+    scene->addItem(proxy);
     proxy->setZValue(35);
-    proxy->setFlag(QGraphicsItem::ItemIsMovable, true);
+    proxy->setFlag(QGraphicsItem::ItemIsMovable, false);
     proxy->setFlag(QGraphicsItem::ItemIsSelectable, true);
     proxy->setFlag(QGraphicsItem::ItemIsFocusable, true);
     proxy->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
@@ -1003,75 +1111,77 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 
     if (auto *widget = qobject_cast<QWidget*>(obj)) {
         if (auto *box = findTextBox(widget)) {
-            if (event->type() == QEvent::MouseButtonPress) {
-                auto *e = static_cast<QMouseEvent*>(event);
-                if (e->button() == Qt::LeftButton) {
+            if (widget == box->container) {
+                if (event->type() == QEvent::MouseButtonPress) {
+                    auto *e = static_cast<QMouseEvent*>(event);
+                    if (e->button() == Qt::LeftButton) {
+                        const QRect handleRect(widget->width() - 18,
+                                               widget->height() - 18,
+                                               18,
+                                               18);
+                        if (handleRect.contains(e->pos())) {
+                            box->resizing = true;
+                            box->resizeStartPos = e->pos();
+                            box->resizeStartSize = widget->size();
+                            if (box->editor) {
+                                double startSize = box->editor->fontPointSize();
+                                if (startSize <= 0.0) {
+                                    startSize = 16.0;
+                                }
+                                box->resizeStartFontSize = startSize;
+                            } else {
+                                box->resizeStartFontSize = 16.0;
+                            }
+                            widget->setCursor(Qt::SizeFDiagCursor);
+                            return true;
+                        }
+                    }
+                } else if (event->type() == QEvent::MouseMove) {
+                    auto *e = static_cast<QMouseEvent*>(event);
                     const QRect handleRect(widget->width() - 18,
                                            widget->height() - 18,
                                            18,
                                            18);
-                    if (handleRect.contains(e->pos())) {
-                        box->resizing = true;
-                        box->resizeStartPos = e->pos();
-                        box->resizeStartSize = widget->size();
-                        if (box->editor) {
-                            double startSize = box->editor->fontPointSize();
-                            if (startSize <= 0.0) {
-                                startSize = 16.0;
-                            }
-                            box->resizeStartFontSize = startSize;
-                        } else {
-                            box->resizeStartFontSize = 16.0;
+                    if (box->resizing) {
+                        const QPoint delta = e->pos() - box->resizeStartPos;
+                        QSize newSize = box->resizeStartSize + QSize(delta.x(), delta.y());
+                        newSize.setWidth(std::max(newSize.width(), widget->minimumWidth()));
+                        newSize.setHeight(std::max(newSize.height(), widget->minimumHeight()));
+                        widget->resize(newSize);
+                        if (box->proxy) {
+                            box->proxy->resize(newSize);
                         }
-                        widget->setCursor(Qt::SizeFDiagCursor);
+                        if (box->editor) {
+                            const double ratioW = static_cast<double>(newSize.width()) /
+                                    std::max(1, box->resizeStartSize.width());
+                            const double ratioH = static_cast<double>(newSize.height()) /
+                                    std::max(1, box->resizeStartSize.height());
+                            const double ratio = std::min(ratioW, ratioH);
+                            double newFontSize = box->resizeStartFontSize * ratio;
+                            newFontSize = std::clamp(newFontSize, 8.0, 96.0);
+
+                            QTextCursor cursor = box->editor->textCursor();
+                            cursor.select(QTextCursor::Document);
+                            QTextCharFormat fmt;
+                            fmt.setFontPointSize(newFontSize);
+                            cursor.mergeCharFormat(fmt);
+                            box->editor->mergeCurrentCharFormat(fmt);
+                            cursor.clearSelection();
+                            box->editor->setTextCursor(cursor);
+                        }
+                        return true;
+                    } else {
+                        widget->setCursor(handleRect.contains(e->pos())
+                                          ? Qt::SizeFDiagCursor
+                                          : Qt::ArrowCursor);
+                    }
+                } else if (event->type() == QEvent::MouseButtonRelease) {
+                    auto *e = static_cast<QMouseEvent*>(event);
+                    if (e->button() == Qt::LeftButton && box->resizing) {
+                        box->resizing = false;
+                        widget->setCursor(Qt::ArrowCursor);
                         return true;
                     }
-                }
-            } else if (event->type() == QEvent::MouseMove) {
-                auto *e = static_cast<QMouseEvent*>(event);
-                const QRect handleRect(widget->width() - 18,
-                                       widget->height() - 18,
-                                       18,
-                                       18);
-                if (box->resizing) {
-                    const QPoint delta = e->pos() - box->resizeStartPos;
-                    QSize newSize = box->resizeStartSize + QSize(delta.x(), delta.y());
-                    newSize.setWidth(std::max(newSize.width(), widget->minimumWidth()));
-                    newSize.setHeight(std::max(newSize.height(), widget->minimumHeight()));
-                    widget->resize(newSize);
-                    if (box->proxy) {
-                        box->proxy->resize(newSize);
-                    }
-                    if (box->editor) {
-                        const double ratioW = static_cast<double>(newSize.width()) /
-                                std::max(1, box->resizeStartSize.width());
-                        const double ratioH = static_cast<double>(newSize.height()) /
-                                std::max(1, box->resizeStartSize.height());
-                        const double ratio = std::min(ratioW, ratioH);
-                        double newFontSize = box->resizeStartFontSize * ratio;
-                        newFontSize = std::clamp(newFontSize, 8.0, 96.0);
-
-                        QTextCursor cursor = box->editor->textCursor();
-                        cursor.select(QTextCursor::Document);
-                        QTextCharFormat fmt;
-                        fmt.setFontPointSize(newFontSize);
-                        cursor.mergeCharFormat(fmt);
-                        box->editor->mergeCurrentCharFormat(fmt);
-                        cursor.clearSelection();
-                        box->editor->setTextCursor(cursor);
-                    }
-                    return true;
-                } else {
-                    widget->setCursor(handleRect.contains(e->pos())
-                                      ? Qt::SizeFDiagCursor
-                                      : Qt::ArrowCursor);
-                }
-            } else if (event->type() == QEvent::MouseButtonRelease) {
-                auto *e = static_cast<QMouseEvent*>(event);
-                if (e->button() == Qt::LeftButton && box->resizing) {
-                    box->resizing = false;
-                    widget->setCursor(Qt::ArrowCursor);
-                    return true;
                 }
             }
         }
