@@ -21,6 +21,7 @@ QT_END_NAMESPACE
 class QGraphicsScene;
 class QGraphicsView;
 class QMenu;
+class QGraphicsItem;
 class QGraphicsProxyWidget;
 class QTextEdit;
 class QWidget;
@@ -105,6 +106,7 @@ private:
     QPoint m_lastRightDragPos;
     TextBoxWidgets *findTextBox(QGraphicsProxyWidget *proxy);
     TextBoxWidgets *findTextBox(QWidget *container);
+    bool eraseTextBoxItem(QGraphicsItem *item);
     void applyColorToActiveText(const QColor &color);
     void autoResizeTextBox(TextBoxWidgets *box);
     void markAddTextInactive();
