@@ -82,8 +82,14 @@
         <property name="spacing">
          <number>8</number>
         </property>
-        <item>
+        <item alignment="Qt::AlignHCenter">
          <widget class="QLabel" name="avatarPlaceholder">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>140</width>
@@ -104,8 +110,26 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item alignment="Qt::AlignHCenter">
          <widget class="QPushButton" name="chooseAvatarButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>220</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>260</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="text">
            <string>Elegir foto</string>
           </property>
@@ -117,6 +141,12 @@
        <layout class="QFormLayout" name="formLayout">
         <property name="labelAlignment">
          <set>Qt::AlignRight|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment">
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
+        </property>
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::FieldsStayAtSizeHint</enum>
         </property>
         <property name="horizontalSpacing">
          <number>16</number>
@@ -133,6 +163,27 @@
         </item>
         <item row="0" column="1">
          <widget class="QLineEdit" name="usernameLineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>220</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>260</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="maxLength">
+           <number>15</number>
+          </property>
           <property name="placeholderText">
            <string>Elige un usuario</string>
           </property>
@@ -140,6 +191,21 @@
         </item>
         <item row="1" column="1">
          <widget class="QLabel" name="usernameHintLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>6–15 caracteres, sin espacios ni '-'/'_'.</string>
           </property>
@@ -154,6 +220,18 @@
         </item>
         <item row="2" column="1">
          <widget class="QWidget" name="passwordContainer">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>340</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <layout class="QHBoxLayout" name="passwordLayout">
            <property name="spacing">
             <number>8</number>
@@ -172,6 +250,27 @@
            </property>
            <item>
             <widget class="QLineEdit" name="passwordLineEdit">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>220</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>260</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="maxLength">
+              <number>20</number>
+             </property>
              <property name="placeholderText">
               <string>Crea tu contraseña</string>
              </property>
@@ -198,6 +297,21 @@
         </item>
         <item row="3" column="1">
          <widget class="QLabel" name="passwordHintLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>8–20 caracteres, con mayús/minús, dígito y símbolo.</string>
           </property>
@@ -212,6 +326,27 @@
         </item>
         <item row="4" column="1">
          <widget class="QLineEdit" name="emailLineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>260</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>320</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="maxLength">
+           <number>254</number>
+          </property>
           <property name="placeholderText">
            <string>tu@correo.com</string>
           </property>
@@ -219,6 +354,21 @@
         </item>
         <item row="5" column="1">
          <widget class="QLabel" name="emailHintLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Introduce un email válido.</string>
           </property>
@@ -233,6 +383,18 @@
         </item>
         <item row="6" column="1">
          <widget class="QDateEdit" name="birthdateEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="calendarPopup">
            <bool>true</bool>
           </property>
@@ -240,6 +402,21 @@
         </item>
         <item row="7" column="1">
          <widget class="QLabel" name="birthdateHintLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>500</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="wordWrap">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Debes ser mayor de 16 años.</string>
           </property>
