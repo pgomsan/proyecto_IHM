@@ -41,6 +41,7 @@
 #include <QCursor>
 #include <QPointer>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
 #include <cmath>
 #include <algorithm>
 
@@ -101,6 +102,7 @@ protected:
                 m_dragging = true;
                 m_pressScenePos = event->scenePos();
                 m_startPos = pos();
+                setCursor(Qt::SizeAllCursor);
                 event->accept();
                 return;
             }
@@ -125,6 +127,7 @@ protected:
     {
         if (m_dragging && event->button() == Qt::LeftButton) {
             m_dragging = false;
+            unsetCursor();
             event->accept();
             return;
         }
@@ -154,10 +157,12 @@ MainWindow::MainWindow(QWidget *parent)
     view->setScene(scene);
     view->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     view->setResizeAnchor(QGraphicsView::AnchorViewCenter);
-    view->setDragMode(QGraphicsView::ScrollHandDrag);
+    view->setDragMode(QGraphicsView::NoDrag);
     view->setFrameShape(QFrame::NoFrame);
     view->setFocusPolicy(Qt::StrongFocus);
     view->viewport()->setFocusPolicy(Qt::StrongFocus);
+    view->setMouseTracking(true);
+    view->viewport()->setMouseTracking(true);
 
     auto *mainLayout = new QVBoxLayout(ui->centralwidget);
     mainLayout->setContentsMargins(8, 8, 8, 8);
@@ -315,6 +320,7 @@ void MainWindow::on_actionreset_triggered()
     markAddTextInactive();
     ui->actionpuntos_mapa->setChecked(false);
     clearPointPopups();
+    updateViewCursor();
 
     {
         const QSignalBlocker blocker(ui->actiondibujar_linea);
@@ -514,6 +520,8 @@ void MainWindow::setAddTextMode(bool enabled)
     m_addTextMode = enabled;
     m_textPlacementPending = false;
     m_rightDragInProgress = false;
+    m_leftPanPressed = false;
+    m_leftPanInProgress = false;
 
     if (enabled) {
         // Desactivar otros modos que usan el click derecho
@@ -539,9 +547,10 @@ void MainWindow::setAddTextMode(bool enabled)
         }
         m_eraserMode = false;
 
-        view->setDragMode(QGraphicsView::ScrollHandDrag);
-        view->unsetCursor();
+        view->setDragMode(QGraphicsView::NoDrag);
     }
+
+    updateViewCursor();
 }
 
 void MainWindow::markAddTextInactive()
@@ -553,6 +562,9 @@ void MainWindow::markAddTextInactive()
     m_addTextMode = false;
     m_textPlacementPending = false;
     m_rightDragInProgress = false;
+    m_leftPanPressed = false;
+    m_leftPanInProgress = false;
+    updateViewCursor();
 }
 
 MainWindow::TextBoxWidgets *MainWindow::findTextBox(QGraphicsProxyWidget *proxy)
@@ -960,6 +972,7 @@ void MainWindow::setDrawLineMode(bool enabled)
 
     const QSignalBlocker blocker(ui->actiondibujar_linea);
     ui->actiondibujar_linea->setChecked(dibujos.drawLineMode());
+    updateViewCursor();
 }
 
 void MainWindow::setDrawPointMode(bool enabled)
@@ -984,6 +997,7 @@ void MainWindow::setDrawPointMode(bool enabled)
 
     const QSignalBlocker blocker(ui->actiondibujar_punto);
     ui->actiondibujar_punto->setChecked(dibujos.drawPointMode());
+    updateViewCursor();
 }
 
 void MainWindow::setDrawArcMode(bool enabled)
@@ -1008,6 +1022,7 @@ void MainWindow::setDrawArcMode(bool enabled)
 
     const QSignalBlocker blocker(ui->actiondibujar_curva);
     ui->actiondibujar_curva->setChecked(dibujos.drawArcMode());
+    updateViewCursor();
 }
 
 void MainWindow::setEraserMode(bool enabled)
@@ -1016,6 +1031,10 @@ void MainWindow::setEraserMode(bool enabled)
         markAddTextInactive();
     }
     m_eraserMode = enabled;
+    m_leftPanPressed = false;
+    m_leftPanInProgress = false;
+
+    view->setDragMode(QGraphicsView::NoDrag);
 
     if (m_eraserMode) {
         // Desactivar modos de dibujo para evitar conflictos
@@ -1035,19 +1054,143 @@ void MainWindow::setEraserMode(bool enabled)
         dibujos.setDrawPointMode(false);
         dibujos.setDrawArcMode(false);
 
-        // Mantener el desplazamiento con click izquierdo, borrar con click derecho
-        view->setDragMode(QGraphicsView::ScrollHandDrag);
-
-    } else {
-        view->setDragMode(QGraphicsView::ScrollHandDrag);
-        view->unsetCursor();
     }
+
+    updateViewCursor();
+}
+
+void MainWindow::updateViewCursor()
+{
+    if (!view || !view->viewport()) {
+        return;
+    }
+
+    if (m_leftPanInProgress) {
+        view->viewport()->setCursor(Qt::ClosedHandCursor);
+        return;
+    }
+
+    if (m_addTextMode) {
+        view->viewport()->setCursor(Qt::IBeamCursor);
+        return;
+    }
+
+    if (m_eraserMode) {
+        static QCursor eraserCursor = []() {
+            constexpr int size = 22;
+            QPixmap pix(size, size);
+            pix.fill(Qt::transparent);
+            QPainter painter(&pix);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            QPen pen(Qt::black, 2);
+            painter.setPen(pen);
+            painter.setBrush(Qt::NoBrush);
+            painter.drawEllipse(QRectF(4.0, 4.0, size - 8.0, size - 8.0));
+            return QCursor(pix, size / 2, size / 2);
+        }();
+        view->viewport()->setCursor(eraserCursor);
+        return;
+    }
+
+    if (dibujos.drawLineMode() || dibujos.drawPointMode() || dibujos.drawArcMode()) {
+        view->viewport()->setCursor(Qt::CrossCursor);
+        return;
+    }
+
+    view->viewport()->unsetCursor();
 }
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
     const int previousPointCount = dibujos.pointCoordinates().size();
 
     if (obj == view->viewport()) {
+        if (event->type() == QEvent::Leave || event->type() == QEvent::FocusOut) {
+            if (m_leftPanPressed || m_leftPanInProgress) {
+                m_leftPanPressed = false;
+                m_leftPanInProgress = false;
+                updateViewCursor();
+            }
+        }
+
+        if (event->type() == QEvent::MouseButtonPress) {
+            auto *e = static_cast<QMouseEvent*>(event);
+            if (e->button() == Qt::LeftButton) {
+                const QPointF scenePos = view->mapToScene(e->pos());
+                const QList<QGraphicsItem*> hitItems = scene->items(
+                    scenePos,
+                    Qt::IntersectsItemBoundingRect,
+                    Qt::DescendingOrder,
+                    view->transform());
+
+                bool shouldPan = true;
+                for (QGraphicsItem *hitItem : hitItems) {
+                    if (!hitItem) {
+                        continue;
+                    }
+                    if (auto *proxy = qgraphicsitem_cast<QGraphicsProxyWidget*>(hitItem)) {
+                        if (findTextBox(proxy)) {
+                            shouldPan = false;
+                            break;
+                        }
+                        shouldPan = false;
+                        break;
+                    }
+                    if (dynamic_cast<Tool*>(hitItem)) {
+                        shouldPan = false;
+                        break;
+                    }
+                    if (hitItem->flags().testFlag(QGraphicsItem::ItemIsMovable)) {
+                        shouldPan = false;
+                        break;
+                    }
+                }
+
+                if (shouldPan) {
+                    m_leftPanPressed = true;
+                    m_leftPanInProgress = false;
+                    m_leftPanStartPos = e->pos();
+                    m_leftPanLastPos = e->pos();
+                } else {
+                    m_leftPanPressed = false;
+                    m_leftPanInProgress = false;
+                }
+            }
+        } else if (event->type() == QEvent::MouseMove) {
+            auto *e = static_cast<QMouseEvent*>(event);
+            if (m_leftPanPressed && (e->buttons() & Qt::LeftButton)) {
+                if (!m_leftPanInProgress) {
+                    const QPoint deltaFromStart = e->pos() - m_leftPanStartPos;
+                    if (deltaFromStart.manhattanLength() > 2) {
+                        m_leftPanInProgress = true;
+                        updateViewCursor();
+                    }
+                }
+
+                if (m_leftPanInProgress) {
+                    const QPoint delta = e->pos() - m_leftPanLastPos;
+                    view->horizontalScrollBar()->setValue(view->horizontalScrollBar()->value() - delta.x());
+                    view->verticalScrollBar()->setValue(view->verticalScrollBar()->value() - delta.y());
+                    m_leftPanLastPos = e->pos();
+                    return true;
+                }
+            } else if (m_leftPanPressed || m_leftPanInProgress) {
+                m_leftPanPressed = false;
+                m_leftPanInProgress = false;
+                updateViewCursor();
+            }
+        } else if (event->type() == QEvent::MouseButtonRelease) {
+            auto *e = static_cast<QMouseEvent*>(event);
+            if (e->button() == Qt::LeftButton) {
+                const bool wasPanning = m_leftPanInProgress;
+                m_leftPanPressed = false;
+                m_leftPanInProgress = false;
+                updateViewCursor();
+                if (wasPanning) {
+                    return true;
+                }
+            }
+        }
+
         if (m_addTextMode) {
             if (event->type() == QEvent::MouseButtonPress ||
                 event->type() == QEvent::MouseMove ||

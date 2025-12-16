@@ -93,6 +93,7 @@ private:
     void setRulerVisible(bool visible);
     void setCompassVisible(bool visible);
     void setEraserMode(bool enabled);
+    void updateViewCursor();
     void clearTextBoxes();
     void selectTextBox(QGraphicsProxyWidget *proxy);
     QGraphicsProxyWidget *createTextBoxAt(const QPointF &scenePos);
@@ -116,6 +117,10 @@ private:
     bool m_rightDragInProgress = false;
     bool m_textPlacementPending = false;
     QPoint m_lastRightDragPos;
+    bool m_leftPanPressed = false;
+    bool m_leftPanInProgress = false;
+    QPoint m_leftPanStartPos;
+    QPoint m_leftPanLastPos;
     TextBoxWidgets *findTextBox(QGraphicsProxyWidget *proxy);
     TextBoxWidgets *findTextBox(QWidget *container);
     bool eraseTextBoxItem(QGraphicsItem *item);

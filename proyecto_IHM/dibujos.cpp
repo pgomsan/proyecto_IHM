@@ -340,13 +340,8 @@ void Dibujos::refreshInteractionMode()
     if (!m_view) {
         return;
     }
-    if (m_drawLineMode || m_drawPointMode || m_drawArcMode) {
-        m_view->setDragMode(QGraphicsView::NoDrag);
-        m_view->setCursor(Qt::CrossCursor);
-    } else {
-        m_view->setDragMode(QGraphicsView::ScrollHandDrag);
-        m_view->unsetCursor();
-    }
+    // El desplazamiento se gestiona desde MainWindow ajustando scrollbars con click izquierdo.
+    m_view->setDragMode(QGraphicsView::NoDrag);
 }
 
 void Dibujos::clearCurrentLine()
