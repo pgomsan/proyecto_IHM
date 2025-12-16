@@ -11,6 +11,7 @@ class QButtonGroup;
 class QToolButton;
 class QDialogButtonBox;
 class QMouseEvent;
+class QPushButton;
 
 class ProblemDialog : public QDialog
 {
@@ -19,6 +20,9 @@ public:
     explicit ProblemDialog(QWidget *parent = nullptr);
 
     void setProblem(const Problem &problem);
+
+signals:
+    void nextRequested();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -39,9 +43,12 @@ private:
     QWidget *contentContainer = nullptr;
     QToolButton *toggleQuestionButton = nullptr;
     QDialogButtonBox *buttonBox = nullptr;
+    QPushButton *checkButton = nullptr;
+    QPushButton *nextButton = nullptr;
     bool questionCollapsed = false;
     QSize expandedSize;
     int collapsedHeight = 0;
+    bool answerChecked = false;
 };
 
 #endif // QUESTIONDIALOG_H

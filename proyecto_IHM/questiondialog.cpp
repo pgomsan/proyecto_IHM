@@ -5,16 +5,52 @@
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QRandomGenerator>
 #include <QScrollArea>
+#include <QStyle>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <random>
+
+namespace {
+void repolish(QWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+    widget->style()->unpolish(widget);
+    widget->style()->polish(widget);
+    widget->update();
+}
+
+void setAnswerState(QAbstractButton *button, const QString &state)
+{
+    auto *widget = qobject_cast<QWidget*>(button);
+    if (!widget) {
+        return;
+    }
+    if (state.isEmpty()) {
+        widget->setProperty("validationState", QVariant());
+    } else {
+        widget->setProperty("validationState", state);
+    }
+    repolish(widget);
+}
+
+void clearAnswerStates(QButtonGroup *group)
+{
+    if (!group) {
+        return;
+    }
+    for (QAbstractButton *btn : group->buttons()) {
+        setAnswerState(btn, QString());
+    }
+}
+}
 
 ProblemDialog::ProblemDialog(QWidget *parent)
     : QDialog(parent)
@@ -74,11 +110,23 @@ ProblemDialog::ProblemDialog(QWidget *parent)
 
     answerGroup = new QButtonGroup(this);
     answerGroup->setExclusive(true);
+    connect(answerGroup, &QButtonGroup::buttonClicked, this, [this]() {
+        if (answerChecked) {
+            return;
+        }
+        clearAnswerStates(answerGroup);
+    });
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, this);
-    QPushButton *checkButton = buttonBox->addButton(tr("Comprobar"), QDialogButtonBox::ActionRole);
+    checkButton = buttonBox->addButton(tr("Comprobar"), QDialogButtonBox::ActionRole);
     checkButton->setProperty("role", "primary");
+    nextButton = buttonBox->addButton(tr("Siguiente"), QDialogButtonBox::ActionRole);
+    nextButton->setProperty("role", "secondary");
+    nextButton->setEnabled(false);
     connect(checkButton, &QPushButton::clicked, this, &ProblemDialog::handleCheckAnswer);
+    connect(nextButton, &QPushButton::clicked, this, [this]() {
+        emit nextRequested();
+    });
     connect(buttonBox, &QDialogButtonBox::rejected, this, &ProblemDialog::reject);
     mainLayout->addWidget(buttonBox);
 }
@@ -87,6 +135,13 @@ void ProblemDialog::setProblem(const Problem &problem)
 {
     questionLabel->setText(problem.text());
     clearAnswers();
+    answerChecked = false;
+    if (checkButton) {
+        checkButton->setEnabled(true);
+    }
+    if (nextButton) {
+        nextButton->setEnabled(false);
+    }
 
     QVector<int> indexes;
     indexes.reserve(problem.answers().size());
@@ -101,6 +156,7 @@ void ProblemDialog::setProblem(const Problem &problem)
     for (int idx : indexes) {
         addAnswerOption(problem.answers().at(idx));
     }
+    clearAnswerStates(answerGroup);
 
     // Al cambiar de pregunta, la mostramos (por si estaba colapsada)
     if (questionCollapsed) {
@@ -122,16 +178,42 @@ void ProblemDialog::handleCheckAnswer()
 {
     auto *checked = qobject_cast<QRadioButton*>(answerGroup->checkedButton());
     if (!checked) {
-        QMessageBox::information(this, tr("Respuesta"),
-                                 tr("Selecciona una respuesta para comprobar."));
+        // Sin popups: llevamos el foco a la primera opción.
+        const auto buttons = answerGroup->buttons();
+        if (!buttons.isEmpty()) {
+            buttons.first()->setFocus();
+        }
         return;
     }
 
-    const bool valid = checked->property("valid").toBool();
-    const QString msg = valid
-            ? tr("Respuesta correcta.")
-            : tr("Respuesta incorrecta.");
-    QMessageBox::information(this, tr("Resultado"), msg);
+    clearAnswerStates(answerGroup);
+
+    const bool selectedValid = checked->property("valid").toBool();
+    if (selectedValid) {
+        setAnswerState(checked, "ok");
+    } else {
+        setAnswerState(checked, "error");
+        for (QAbstractButton *btn : answerGroup->buttons()) {
+            if (btn && btn->property("valid").toBool()) {
+                setAnswerState(btn, "ok");
+                break;
+            }
+        }
+    }
+
+    answerChecked = true;
+    if (checkButton) {
+        checkButton->setEnabled(false);
+    }
+    if (nextButton) {
+        nextButton->setEnabled(true);
+        nextButton->setFocus();
+    }
+    for (QAbstractButton *btn : answerGroup->buttons()) {
+        if (btn) {
+            btn->setEnabled(false);
+        }
+    }
 }
 
 void ProblemDialog::clearAnswers()
@@ -148,6 +230,7 @@ void ProblemDialog::addAnswerOption(const Answer &answer)
 {
     auto *radio = new QRadioButton(answer.text(), this);
     radio->setProperty("valid", answer.validity());
+    radio->setEnabled(!answerChecked);
     answerGroup->addButton(radio);
     answersLayout->addWidget(radio);
 }
