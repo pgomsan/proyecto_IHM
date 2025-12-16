@@ -82,8 +82,11 @@
         <property name="labelAlignment">
          <set>Qt::AlignRight|Qt::AlignVCenter</set>
         </property>
-        <property name="formAlignment">
-         <set>Qt::AlignLeft|Qt::AlignTop</set>
+       <property name="formAlignment">
+         <set>Qt::AlignHCenter|Qt::AlignTop</set>
+        </property>
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::FieldsStayAtSizeHint</enum>
         </property>
         <property name="horizontalSpacing">
          <number>16</number>
@@ -100,6 +103,27 @@
         </item>
         <item row="0" column="1">
          <widget class="QLineEdit" name="usernameLineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>220</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>260</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="maxLength">
+           <number>15</number>
+          </property>
           <property name="placeholderText">
            <string>Introduce tu usuario</string>
           </property>
@@ -114,6 +138,18 @@
         </item>
         <item row="1" column="1">
          <widget class="QWidget" name="passwordContainer">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>340</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <layout class="QHBoxLayout" name="passwordLayout">
            <property name="spacing">
             <number>8</number>
@@ -132,6 +168,27 @@
            </property>
            <item>
             <widget class="QLineEdit" name="passwordLineEdit">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>220</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>260</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="maxLength">
+              <number>20</number>
+             </property>
              <property name="placeholderText">
               <string>Introduce tu contraseña</string>
              </property>
