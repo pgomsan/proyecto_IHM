@@ -3,12 +3,15 @@
 #include <QAbstractButton>
 #include <QButtonGroup>
 #include <QDialogButtonBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMessageBox>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QRandomGenerator>
 #include <QScrollArea>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <algorithm>
 #include <random>
@@ -25,40 +28,57 @@ ProblemDialog::ProblemDialog(QWidget *parent)
     setWindowFlag(Qt::Tool, true);
 
     auto *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(8, 8, 8, 16);
+    mainLayout->setSpacing(8);
 
-    questionLabel = new QLabel(this);
+    auto *headerLayout = new QHBoxLayout();
+    headerLayout->setContentsMargins(0, 0, 0, 0);
+    headerLayout->setSpacing(8);
+    toggleQuestionButton = new QToolButton(this);
+    toggleQuestionButton->setProperty("role", "subtle");
+    toggleQuestionButton->setText(tr("Ocultar pregunta"));
+    toggleQuestionButton->setAutoRaise(true);
+    toggleQuestionButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    toggleQuestionButton->setArrowType(Qt::UpArrow);
+    toggleQuestionButton->setCursor(Qt::PointingHandCursor);
+    toggleQuestionButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    connect(toggleQuestionButton, &QToolButton::clicked,
+            this, &ProblemDialog::toggleQuestionVisibility);
+    headerLayout->addWidget(toggleQuestionButton, 1);
+    mainLayout->addLayout(headerLayout);
+
+    contentContainer = new QWidget(this);
+    auto *contentLayout = new QVBoxLayout(contentContainer);
+    contentLayout->setContentsMargins(0, 0, 0, 0);
+    contentLayout->setSpacing(10);
+
+    questionLabel = new QLabel(contentContainer);
     questionLabel->setWordWrap(true);
     questionLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     questionLabel->setMargin(4);
     questionLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-    mainLayout->addWidget(questionLabel);
+    contentLayout->addWidget(questionLabel);
 
-    answersContainer = new QWidget(this);
+    answersContainer = new QWidget(contentContainer);
     answersLayout = new QVBoxLayout();
     answersLayout->setSpacing(8);
     answersLayout->setContentsMargins(4, 8, 4, 8);
     answersContainer->setLayout(answersLayout);
-    answersScroll = new QScrollArea(this);
+    answersScroll = new QScrollArea(contentContainer);
     answersScroll->setWidgetResizable(true);
     answersScroll->setWidget(answersContainer);
     answersScroll->setMinimumHeight(80);
-    mainLayout->addWidget(answersScroll);
+    contentLayout->addWidget(answersScroll);
+
+    mainLayout->addWidget(contentContainer);
 
     answerGroup = new QButtonGroup(this);
     answerGroup->setExclusive(true);
 
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, this);
+    buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, this);
     QPushButton *checkButton = buttonBox->addButton(tr("Comprobar"), QDialogButtonBox::ActionRole);
-    QPushButton *toggleAnswers = buttonBox->addButton(tr("Ocultar respuestas"), QDialogButtonBox::ActionRole);
     checkButton->setProperty("role", "primary");
-    toggleAnswers->setProperty("role", "secondary");
     connect(checkButton, &QPushButton::clicked, this, &ProblemDialog::handleCheckAnswer);
-    connect(toggleAnswers, &QPushButton::clicked, this, [this, toggleAnswers]() {
-        const bool willHide = answersScroll->isVisible();
-        answersScroll->setVisible(!willHide);
-        toggleAnswers->setText(willHide ? tr("Mostrar respuestas") : tr("Ocultar respuestas"));
-        adjustSize();
-    });
     connect(buttonBox, &QDialogButtonBox::rejected, this, &ProblemDialog::reject);
     mainLayout->addWidget(buttonBox);
 }
@@ -81,6 +101,21 @@ void ProblemDialog::setProblem(const Problem &problem)
     for (int idx : indexes) {
         addAnswerOption(problem.answers().at(idx));
     }
+
+    // Al cambiar de pregunta, la mostramos (por si estaba colapsada)
+    if (questionCollapsed) {
+        toggleQuestionVisibility();
+    }
+}
+
+void ProblemDialog::mousePressEvent(QMouseEvent *event)
+{
+    if (questionCollapsed && event && event->button() == Qt::LeftButton) {
+        toggleQuestionVisibility();
+        event->accept();
+        return;
+    }
+    QDialog::mousePressEvent(event);
 }
 
 void ProblemDialog::handleCheckAnswer()
@@ -115,4 +150,51 @@ void ProblemDialog::addAnswerOption(const Answer &answer)
     radio->setProperty("valid", answer.validity());
     answerGroup->addButton(radio);
     answersLayout->addWidget(radio);
+}
+
+void ProblemDialog::toggleQuestionVisibility()
+{
+    questionCollapsed = !questionCollapsed;
+    if (questionCollapsed) {
+        expandedSize = size();
+    }
+
+    contentContainer->setVisible(!questionCollapsed);
+    if (buttonBox) {
+        buttonBox->setVisible(!questionCollapsed);
+    }
+
+    if (questionCollapsed) {
+        toggleQuestionButton->setArrowType(Qt::DownArrow);
+        toggleQuestionButton->setText(tr("Pregunta oculta — clic para mostrar"));
+        toggleQuestionButton->setToolTip(QString());
+
+        const int minHeaderHeight = 40;
+        const int padding = 16;
+        const int extraBottomSpace = 12;
+        const int headerHeight = qMax(minHeaderHeight, toggleQuestionButton->sizeHint().height() + padding);
+        collapsedHeight = headerHeight + extraBottomSpace;
+        toggleQuestionButton->setMinimumHeight(headerHeight - 8);
+
+        setSizeGripEnabled(false);
+        setMinimumSize(expandedSize.width(), collapsedHeight);
+        setMaximumSize(expandedSize.width(), collapsedHeight);
+        resize(expandedSize.width(), collapsedHeight);
+    } else {
+        toggleQuestionButton->setArrowType(Qt::UpArrow);
+        toggleQuestionButton->setText(tr("Ocultar pregunta"));
+        toggleQuestionButton->setToolTip(QString());
+        toggleQuestionButton->setMinimumSize(0, 0);
+        toggleQuestionButton->setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+        toggleQuestionButton->setMinimumHeight(0);
+
+        setMinimumSize(260, 160);
+        setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
+        setSizeGripEnabled(true);
+        if (expandedSize.isValid()) {
+            resize(expandedSize);
+        } else {
+            adjustSize();
+        }
+    }
 }

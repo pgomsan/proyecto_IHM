@@ -8,6 +8,9 @@
 class QLabel;
 class QVBoxLayout;
 class QButtonGroup;
+class QToolButton;
+class QDialogButtonBox;
+class QMouseEvent;
 
 class ProblemDialog : public QDialog
 {
@@ -17,8 +20,12 @@ public:
 
     void setProblem(const Problem &problem);
 
+protected:
+    void mousePressEvent(QMouseEvent *event) override;
+
 private slots:
     void handleCheckAnswer();
+    void toggleQuestionVisibility();
 
 private:
     void clearAnswers();
@@ -29,6 +36,12 @@ private:
     QButtonGroup *answerGroup = nullptr;
     QWidget *answersContainer = nullptr;
     class QScrollArea *answersScroll = nullptr;
+    QWidget *contentContainer = nullptr;
+    QToolButton *toggleQuestionButton = nullptr;
+    QDialogButtonBox *buttonBox = nullptr;
+    bool questionCollapsed = false;
+    QSize expandedSize;
+    int collapsedHeight = 0;
 };
 
 #endif // QUESTIONDIALOG_H

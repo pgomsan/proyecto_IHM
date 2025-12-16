@@ -360,6 +360,10 @@ void MainWindow::openProblemDialog(const Problem &problem)
     auto *dialog = new ProblemDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->setProblem(problem);
+    if (isVisible()) {
+        const QPoint topRightGlobal = mapToGlobal(QPoint(width(), 0));
+        dialog->move(topRightGlobal.x() - dialog->width() - 12, topRightGlobal.y() + 60);
+    }
     dialog->show();
 }
 
