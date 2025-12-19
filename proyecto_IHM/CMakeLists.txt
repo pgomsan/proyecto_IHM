@@ -30,6 +30,8 @@ qt_add_executable(proyecto_IHM
     historydialog.cpp
     historydialog.h
     historydialog.ui
+    helpdialog.cpp
+    helpdialog.h
     questiondialog.cpp
     questiondialog.h
     questionbankdialog.cpp

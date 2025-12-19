@@ -6,6 +6,7 @@
 #include "questiondialog.h"
 #include "questionbankdialog.h"
 #include "historydialog.h"
+#include "helpdialog.h"
 #include "navdb/lib/include/navigation.h"
 #include "navdb/lib/include/navdaoexception.h"
 #include <QGraphicsPixmapItem>
@@ -40,8 +41,11 @@
 #include <QFontMetrics>
 #include <QCursor>
 #include <QPointer>
+#include <QAbstractButton>
+#include <QPushButton>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <QTimer>
 #include <cmath>
 #include <algorithm>
 
@@ -178,6 +182,8 @@ MainWindow::MainWindow(QWidget *parent)
     currentZoom = 0.20;
     applyZoom();
     updateUserActionIcon();
+    QTimer::singleShot(0, this, &MainWindow::promptLoginOnStartup);
+    statusBar()->showMessage(tr("Pulsa F1 para ver la ayuda."), 7000);
 
     // Configuracion de la Tool Bar
     ui->toolBar->setIconSize(QSize(56, 56));
@@ -254,6 +260,39 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onSceneSelectionChanged);
 
     view->viewport()->installEventFilter(this);
+}
+
+void MainWindow::on_actionayuda_triggered()
+{
+    HelpDialog dialog(this);
+    dialog.exec();
+}
+
+void MainWindow::promptLoginOnStartup()
+{
+    if (m_startupLoginPromptShown || userAgent.isLoggedIn()) {
+        return;
+    }
+    m_startupLoginPromptShown = true;
+
+    QMessageBox prompt(this);
+    prompt.setIcon(QMessageBox::Information);
+    prompt.setWindowTitle(tr("Iniciar sesión"));
+    prompt.setText(tr("Inicia sesión para guardar tu historial y resultados."));
+    QAbstractButton *loginButton = prompt.addButton(tr("Iniciar sesión"), QMessageBox::AcceptRole);
+    prompt.addButton(tr("Ahora no"), QMessageBox::RejectRole);
+    prompt.exec();
+
+    if (prompt.clickedButton() != loginButton || userAgent.isLoggedIn()) {
+        return;
+    }
+
+    LoginDialog dialog(this);
+    connect(&dialog, &LoginDialog::loginRequested,
+            this, &MainWindow::handleLoginRequested);
+    connect(&dialog, &LoginDialog::registerRequested,
+            this, &MainWindow::handleRegisterRequested);
+    dialog.exec();
 }
 
 MainWindow::~MainWindow()
@@ -1208,10 +1247,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                         (e->buttons() & Qt::RightButton) &&
                         m_rightDragInProgress) {
                     const QPoint delta = e->pos() - m_lastRightDragPos;
-                    view->horizontalScrollBar()->setValue(
-                                view->horizontalScrollBar()->value() - delta.x());
-                    view->verticalScrollBar()->setValue(
-                                view->verticalScrollBar()->value() - delta.y());
                     m_lastRightDragPos = e->pos();
                     if (delta.manhattanLength() > 2) {
                         m_textPlacementPending = false;

@@ -21,10 +21,12 @@
         <file>icons/punto.png</file>
         <file>icons/anadir-texto.png</file>
         <file>icons/arrow-switch.png</file>
+        <file>icons/help.svg</file>
         <file>icons/logout.svg</file>
         <file>icons/sinfotodeperfil.png</file>
         <file>icons/eye.svg</file>
         <file>icons/eye-off.svg</file>
+        <file>help/ayuda.html</file>
         <file>fonts/Inter-Regular.ttf</file>
         <file>fonts/Inter-SemiBold.ttf</file>
         <file>fonts/Inter-Bold.ttf</file>

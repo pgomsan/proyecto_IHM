@@ -61,6 +61,8 @@
    <addaction name="separator"/>
    <addaction name="actionpuntos_mapa"/>
    <addaction name="separator"/>
+   <addaction name="actionayuda"/>
+   <addaction name="separator"/>
    <addaction name="actionreset"/>
   </widget>
   <action name="actionzoom_in">
@@ -333,6 +335,27 @@
    </property>
    <property name="toolTip">
     <string>Cerrar sesión</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionayuda">
+   <property name="icon">
+    <iconset resource="resources/resources.qrc">
+     <normaloff>:/icons/help.svg</normaloff>:/icons/help.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Ayuda</string>
+   </property>
+   <property name="toolTip">
+    <string>Ayuda (F1)</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

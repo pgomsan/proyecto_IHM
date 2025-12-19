@@ -63,6 +63,7 @@ private slots:
 
     void handleLoginRequested(const QString &username, const QString &password);
     void handleRegisterRequested();
+    void on_actionayuda_triggered();
 
 
 private:
@@ -132,6 +133,8 @@ private:
     void removePointPopup(QGraphicsProxyWidget *popup);
     void refreshPointPopups();
     QVector<QGraphicsProxyWidget*> m_pointPopups;
+    void promptLoginOnStartup();
+    bool m_startupLoginPromptShown = false;
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar
