@@ -217,10 +217,11 @@ QToolButton:hover {
     background-color: rgba(53, 92, 125, 0.12);
 }
 
-QToolButton:checked {
-    background-color: #FF6B6B; /* 10% - Accent */
-    border: 1px solid rgba(53, 92, 125, 0.45);
-    color: #FFFFFF;
+QToolButton:checked,
+QToolButton:checked:pressed {
+    background-color: #D9E9FF; /* azul claro, un poco más oscuro que el fondo */
+    border: 1px solid rgba(53, 92, 125, 0.35);
+    color: #1F2A35;
 }
 
 QToolButton#togglePasswordButton:checked,
