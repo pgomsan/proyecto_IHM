@@ -3,7 +3,9 @@
 #include <QtMath>
 #include <algorithm>
 #include <QApplication>
+#include <QGuiApplication>
 #include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QSvgRenderer>
 
@@ -108,4 +110,24 @@ void Tool::wheelEvent(QGraphicsSceneWheelEvent *event)
         scene()->update();
 
     event->accept();
+}
+
+void Tool::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsSvgItem::mousePressEvent(event);
+
+    if (event && event->button() == Qt::LeftButton && event->isAccepted() && !m_dragCursorActive) {
+        QGuiApplication::setOverrideCursor(Qt::SizeAllCursor);
+        m_dragCursorActive = true;
+    }
+}
+
+void Tool::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsSvgItem::mouseReleaseEvent(event);
+
+    if (event && event->button() == Qt::LeftButton && m_dragCursorActive) {
+        QGuiApplication::restoreOverrideCursor();
+        m_dragCursorActive = false;
+    }
 }
