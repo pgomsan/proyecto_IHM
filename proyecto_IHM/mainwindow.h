@@ -88,6 +88,7 @@ private:
     Tool* m_compass = nullptr;
     QToolButton *m_logoutButton = nullptr;
     QAction *m_logoutSpacerAction = nullptr;
+    QAction *m_helpLogoutSeparatorAction = nullptr;
     QAction *m_logoutButtonAction = nullptr;
     QAction *m_logoutRightPadAction = nullptr;
     void setProtractorVisible(bool visible);

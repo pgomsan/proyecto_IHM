@@ -192,25 +192,66 @@ QStatusBar {
 QToolBar {
     background-color: #F3F6FB;
     border: none;
-    border-bottom: 1px solid #DCE3EF;
     padding: 2px;
+}
+
+QToolBar:horizontal {
+    border-bottom: 1px solid #DCE3EF;
+}
+
+QToolBar:vertical {
+    border-right: 1px solid #DCE3EF;
 }
 
 QToolBar::separator {
     background: #DCE3EF;
+}
+
+QToolBar::separator:horizontal {
     width: 1px;
     margin: 0px 8px;
+}
+
+QToolBar::separator:vertical {
+    height: 1px;
+    margin: 8px 0px;
 }
 
 QToolButton {
     background-color: transparent;
     padding: 5px;
+    border: 1px solid transparent; /* evita cambios de tamaño al hacer :checked */
     border-radius: 3px;
     color: #1F2A35;
 }
 
 QToolBar QToolButton {
     padding: 0px;
+}
+
+QToolBar QToolButton[kind="toggle"] {
+    background-color: rgba(53, 92, 125, 0.06);
+    border: 1px solid rgba(53, 92, 125, 0.25);
+    border-radius: 10px;
+    padding: 3px;
+    margin: 2px 2px;
+}
+
+QToolBar QToolButton[kind="toggle"]:hover {
+    background-color: rgba(53, 92, 125, 0.10);
+    border: 1px solid rgba(53, 92, 125, 0.30);
+}
+
+QToolBar QToolButton[kind="toggle"]:checked,
+QToolBar QToolButton[kind="toggle"]:checked:pressed {
+    background-color: #D9E9FF;
+    border: 1px solid #6CA8FF;
+    color: #1F2A35;
+}
+
+QToolBar QToolButton[kind="toggle"]:checked:hover {
+    background-color: #CCE3FF;
+    border: 1px solid #5A9BFF;
 }
 
 QToolButton:hover {
