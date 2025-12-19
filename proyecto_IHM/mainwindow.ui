@@ -48,11 +48,39 @@
    <addaction name="actionzoom_in"/>
    <addaction name="actionzoom_out"/>
    <addaction name="separator"/>
+   <addaction name="actioncolores"/>
+   <addaction name="separator"/>
+   <addaction name="actionreset"/>
+  </widget>
+  <widget class="QToolBar" name="toolBarLeft">
+   <property name="windowTitle">
+    <string>Herramientas</string>
+   </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
+   <property name="floatable">
+    <bool>false</bool>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
    <addaction name="actiondibujar_punto"/>
    <addaction name="actiondibujar_linea"/>
    <addaction name="actiondibujar_curva"/>
    <addaction name="actionanadir_texto"/>
-   <addaction name="actioncolores"/>
    <addaction name="actionborrador"/>
    <addaction name="separator"/>
    <addaction name="actionregla"/>
@@ -60,10 +88,6 @@
    <addaction name="actiontransportador"/>
    <addaction name="separator"/>
    <addaction name="actionpuntos_mapa"/>
-   <addaction name="separator"/>
-   <addaction name="actionayuda"/>
-   <addaction name="separator"/>
-   <addaction name="actionreset"/>
   </widget>
   <action name="actionzoom_in">
    <property name="icon">

@@ -43,6 +43,7 @@
 #include <QPointer>
 #include <QAbstractButton>
 #include <QPushButton>
+#include <QStyle>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QTimer>
@@ -189,6 +190,24 @@ MainWindow::MainWindow(QWidget *parent)
     ui->toolBar->setIconSize(QSize(56, 56));
     ui->toolBar->setMovable(false);
     ui->toolBar->setFloatable(false);
+    if (ui->toolBarLeft) {
+        ui->toolBarLeft->setIconSize(QSize(56, 56));
+        ui->toolBarLeft->setMovable(false);
+        ui->toolBarLeft->setFloatable(false);
+
+        auto *topSpacer = new QWidget(ui->toolBarLeft);
+        topSpacer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+        const QList<QAction*> leftActions = ui->toolBarLeft->actions();
+        if (!leftActions.isEmpty()) {
+            ui->toolBarLeft->insertWidget(leftActions.first(), topSpacer);
+        } else {
+            ui->toolBarLeft->addWidget(topSpacer);
+        }
+
+        auto *bottomSpacer = new QWidget(ui->toolBarLeft);
+        bottomSpacer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+        ui->toolBarLeft->addWidget(bottomSpacer);
+    }
     ui->actioncerrar_sesion->setText(tr("Cerrar sesión"));
     ui->actioncerrar_sesion->setToolTip(tr("Cerrar sesión"));
     ui->actioncerrar_sesion->setIcon(QIcon(":/icons/logout.svg"));
@@ -198,10 +217,14 @@ MainWindow::MainWindow(QWidget *parent)
     toolBarSpacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_logoutSpacerAction = ui->toolBar->addWidget(toolBarSpacer);
 
+    ui->toolBar->addSeparator();
+    ui->toolBar->addAction(ui->actionayuda);
+    m_helpLogoutSeparatorAction = ui->toolBar->addSeparator();
+
     m_logoutButton = new QToolButton(ui->toolBar);
     m_logoutButton->setAutoRaise(true);
     m_logoutButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    m_logoutButton->setIconSize(QSize(40, 40));
+    m_logoutButton->setIconSize(ui->toolBar->iconSize());
     m_logoutButton->setDefaultAction(ui->actioncerrar_sesion);
     m_logoutButtonAction = ui->toolBar->addWidget(m_logoutButton);
 
@@ -255,6 +278,35 @@ MainWindow::MainWindow(QWidget *parent)
     ui->actionanadir_texto->setCheckable(true);
     connect(ui->actionanadir_texto, &QAction::toggled,
             this, &MainWindow::setAddTextMode);
+
+    const auto markToggleButton = [this](QAction *action) {
+        if (!action) {
+            return;
+        }
+        QToolButton *button = nullptr;
+        if (ui->toolBar) {
+            button = qobject_cast<QToolButton*>(ui->toolBar->widgetForAction(action));
+        }
+        if (!button && ui->toolBarLeft) {
+            button = qobject_cast<QToolButton*>(ui->toolBarLeft->widgetForAction(action));
+        }
+        if (button) {
+            button->setProperty("kind", "toggle");
+            button->style()->unpolish(button);
+            button->style()->polish(button);
+            button->update();
+        }
+    };
+
+    markToggleButton(ui->actiondibujar_punto);
+    markToggleButton(ui->actiondibujar_linea);
+    markToggleButton(ui->actiondibujar_curva);
+    markToggleButton(ui->actionanadir_texto);
+    markToggleButton(ui->actionborrador);
+    markToggleButton(ui->actionregla);
+    markToggleButton(ui->actioncompas);
+    markToggleButton(ui->actiontransportador);
+    markToggleButton(ui->actionpuntos_mapa);
 
     connect(scene, &QGraphicsScene::selectionChanged,
             this, &MainWindow::onSceneSelectionChanged);
@@ -388,8 +440,8 @@ void MainWindow::updateUserActionIcon()
     ui->actionPregunta_aleatoria->setEnabled(loggedIn);
     ui->actioncerrar_sesion->setEnabled(loggedIn);
     ui->actioncerrar_sesion->setVisible(loggedIn);
-    if (m_logoutSpacerAction) {
-        m_logoutSpacerAction->setVisible(loggedIn);
+    if (m_helpLogoutSeparatorAction) {
+        m_helpLogoutSeparatorAction->setVisible(loggedIn);
     }
     if (m_logoutButtonAction) {
         m_logoutButtonAction->setVisible(loggedIn);
