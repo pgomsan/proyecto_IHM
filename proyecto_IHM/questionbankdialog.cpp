@@ -33,6 +33,9 @@ QuestionBankDialog::QuestionBankDialog(const QVector<Problem> &problems, QWidget
     layout->addWidget(listWidget, 1);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, this);
+    if (auto *closeButton = buttons->button(QDialogButtonBox::Close)) {
+        closeButton->setText(tr("Cerrar"));
+    }
     QPushButton *openButton = buttons->addButton(tr("Abrir pregunta"), QDialogButtonBox::ActionRole);
     openButton->setProperty("role", "primary");
     connect(openButton, &QPushButton::clicked, this, &QuestionBankDialog::handleOpenSelected);

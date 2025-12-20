@@ -121,6 +121,9 @@ ProblemDialog::ProblemDialog(QWidget *parent)
     });
 
     buttonBox = new QDialogButtonBox(QDialogButtonBox::Close, this);
+    if (auto *closeButton = buttonBox->button(QDialogButtonBox::Close)) {
+        closeButton->setText(tr("Cerrar"));
+    }
     checkButton = buttonBox->addButton(tr("Comprobar"), QDialogButtonBox::ActionRole);
     checkButton->setProperty("role", "primary");
     nextButton = buttonBox->addButton(tr("Siguiente"), QDialogButtonBox::ActionRole);

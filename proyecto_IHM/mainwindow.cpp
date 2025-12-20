@@ -346,8 +346,12 @@ void MainWindow::promptLoginOnStartup()
     }
 
     LoginDialog dialog(this);
-    connect(&dialog, &LoginDialog::loginRequested,
-            this, &MainWindow::handleLoginRequested);
+    connect(&dialog, &LoginDialog::loginRequested, this,
+            [this, &dialog](const QString &username, const QString &password) {
+        if (attemptLogin(username, password)) {
+            dialog.accept();
+        }
+    });
     connect(&dialog, &LoginDialog::registerRequested,
             this, &MainWindow::handleRegisterRequested);
     dialog.exec();
@@ -490,8 +494,12 @@ void MainWindow::on_actionmenu_usuario_triggered()
     }
 
     LoginDialog dialog(this);
-    connect(&dialog, &LoginDialog::loginRequested,
-            this, &MainWindow::handleLoginRequested);
+    connect(&dialog, &LoginDialog::loginRequested, this,
+            [this, &dialog](const QString &username, const QString &password) {
+        if (attemptLogin(username, password)) {
+            dialog.accept();
+        }
+    });
     connect(&dialog, &LoginDialog::registerRequested,
             this, &MainWindow::handleRegisterRequested);
     dialog.exec();
@@ -518,12 +526,17 @@ void MainWindow::on_actionhistorial_triggered()
 }
 void MainWindow::handleLoginRequested(const QString &username, const QString &password)
 {
+    attemptLogin(username, password);
+}
+bool MainWindow::attemptLogin(const QString &username, const QString &password)
+{
     QString error;
     if (!userAgent.login(username, password, &error)) {
         QMessageBox::warning(this, tr("Inicio de sesion fallido"), error);
-        return;
+        return false;
     }
     updateUserActionIcon();
+    return true;
 }
 void MainWindow::handleRegisterRequested()
 {

@@ -3,6 +3,7 @@
 
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSize>
 #include <QStyle>
 #include <QToolButton>
@@ -79,7 +80,6 @@ void LoginDialog::handleConfirm()
     }
 
     emit loginRequested(username, password);
-    accept();
 }
 
 void LoginDialog::togglePasswordVisibility(bool checked)
