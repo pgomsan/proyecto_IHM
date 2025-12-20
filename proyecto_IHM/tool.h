@@ -5,6 +5,7 @@
 #include <QGraphicsSceneWheelEvent>
 #include <QSizeF>
 #include <QPoint>
+#include <QPointer>
 
 class QGraphicsScene;
 class QGraphicsView;
@@ -16,6 +17,7 @@ public:
 
     // Escala uniforme de la regla a un tamano objetivo (en pixeles de escena)
     void setToolSize(const QSizeF& sizePx);
+    void setView(QGraphicsView *view);
 
     // Crea/actualiza una herramienta comun en escena y vista
     static Tool* toggleTool(Tool *&tool,
@@ -39,6 +41,7 @@ private:
     double m_uniformScale = 1.0;
     double m_angleDeg     = 0.0;
     bool m_dragCursorActive = false;
+    QPointer<QGraphicsView> m_view;
 };
 
 #endif // TOOL_H
