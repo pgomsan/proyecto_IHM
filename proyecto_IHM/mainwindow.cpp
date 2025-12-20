@@ -7,6 +7,7 @@
 #include "questionbankdialog.h"
 #include "historydialog.h"
 #include "helpdialog.h"
+#include "compass_tool.h"
 #include "navdb/lib/include/navigation.h"
 #include "navdb/lib/include/navdaoexception.h"
 #include <QGraphicsPixmapItem>
@@ -599,9 +600,11 @@ void MainWindow::openProblemDialog(const Problem &problem)
         const int idx = QRandomGenerator::global()->bounded(problems.size());
         safeDialog->setProblem(problems.at(idx));
     });
+    dialog->adjustSize();
     if (isVisible()) {
-        const QPoint topRightGlobal = mapToGlobal(QPoint(width(), 0));
-        dialog->move(topRightGlobal.x() - dialog->width() - 12, topRightGlobal.y() + 60);
+        const QRect parentRect = frameGeometry();
+        QPoint target = parentRect.center() - QPoint(dialog->width() / 2, dialog->height() / 2);
+        dialog->move(target);
     }
     dialog->show();
 }
@@ -1522,13 +1525,13 @@ void MainWindow::setRulerVisible(bool visible)
 void MainWindow::setCompassVisible(bool visible)
 {
     static const QSizeF kCompassSize(220.0, 360.0);
-    Tool::toggleTool(m_compass,
-                     scene,
-                     view,
-                     ":/icons/compass_leg.svg",
-                     kCompassSize,
-                     QPoint(20, 280),
-                     visible);
+    CompassTool::toggleTool(m_compass,
+                            scene,
+                            view,
+                            ":/icons/compass_leg.svg",
+                            kCompassSize,
+                            QPoint(20, 280),
+                            visible);
 }
 
 void MainWindow::on_actioncerrar_sesion_triggered()

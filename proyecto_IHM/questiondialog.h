@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QVector>
+#include <QPoint>
 #include "navdb/lib/include/navtypes.h"
 
 class QLabel;
@@ -12,6 +13,7 @@ class QToolButton;
 class QDialogButtonBox;
 class QMouseEvent;
 class QPushButton;
+class QEvent;
 
 class ProblemDialog : public QDialog
 {
@@ -26,12 +28,16 @@ signals:
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private slots:
     void handleCheckAnswer();
     void toggleQuestionVisibility();
 
 private:
+    void installDragFilters();
+    static bool isInteractiveWidget(QObject *watched);
+
     void clearAnswers();
     void addAnswerOption(const Answer &answer);
 
@@ -49,6 +55,10 @@ private:
     QSize expandedSize;
     int collapsedHeight = 0;
     bool answerChecked = false;
+
+    bool m_draggingWindow = false;
+    QPoint m_dragStartGlobalPos;
+    QPoint m_dragStartWindowPos;
 };
 
 #endif // QUESTIONDIALOG_H
