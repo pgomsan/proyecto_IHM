@@ -27,6 +27,7 @@
 #include <QEvent>
 #include <QPoint>
 #include <QMouseEvent>
+#include <QWheelEvent>
 #include <QRandomGenerator>
 #include <QSignalBlocker>
 #include <QColorDialog>
@@ -46,7 +47,11 @@
 #include <QPushButton>
 #include <QStyle>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsPathItem>
+#include <QGraphicsLineItem>
 #include <QPainter>
+#include <QPainterPath>
+#include <QPainterPathStroker>
 #include <QTimer>
 #include <cmath>
 #include <algorithm>
@@ -959,75 +964,65 @@ void MainWindow::showPointPopups()
     const auto &points = dibujos.pointCoordinates();
     for (int i = 0; i < points.size(); ++i) {
         const QPointF &scenePos = points.at(i);
-        auto geo = dibujos.screenToGeo(scenePos.x(), scenePos.y());
-        const QString latStr = dibujos.formatDMS(geo.first, true);
-        const QString lonStr = dibujos.formatDMS(geo.second, false);
+        const double safeZoom = std::max(currentZoom, 0.01);
+        const double marginTop = 64.0 / safeZoom;
+        const double marginBottom = 64.0 / safeZoom;
+        const double marginLeft = 64.0 / safeZoom;
+        const double marginRight = marginLeft;
+        const QRectF leaderBounds = m_chartRect.adjusted(marginLeft,
+                                                         marginTop,
+                                                         -marginRight,
+                                                         -marginBottom);
 
-        QWidget *card = new QWidget;
-        card->setAttribute(Qt::WA_StyledBackground, true);
-        card->setStyleSheet("background: rgba(255, 255, 255, 0.95);"
-                            "border: 1px solid #2d2d2d;"
-                            "border-radius: 8px;");
+        const double distTop = scenePos.y() - leaderBounds.top();
+        const double distBottom = leaderBounds.bottom() - scenePos.y();
+        const double distLeft = scenePos.x() - leaderBounds.left();
+        const double distRight = leaderBounds.right() - scenePos.x();
 
-        auto *layout = new QHBoxLayout(card);
-        layout->setContentsMargins(10, 8, 8, 8);
-        layout->setSpacing(10);
+        const int verticalDir = (distTop <= distBottom) ? -1 : 1;
+        const int horizontalDir = (distLeft <= distRight) ? -1 : 1;
 
-        auto *label = new QLabel(tr("Punto %1\nLatitud: %2\nLongitud: %3")
-                                 .arg(i + 1)
-                                 .arg(latStr)
-                                 .arg(lonStr),
-                                 card);
-        label->setWordWrap(true);
-        label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-        label->setStyleSheet("color: #1f1f1f; font-size: 65px; font-weight: 700; line-height: 1.3;");
+        const double endY = (verticalDir < 0) ? leaderBounds.top() : leaderBounds.bottom();
+        const double endX = (horizontalDir < 0) ? leaderBounds.left() : leaderBounds.right();
 
-        auto *closeButton = new QToolButton(card);
-        closeButton->setText(QStringLiteral("x"));
-        closeButton->setToolTip(tr("Cerrar este punto"));
-        closeButton->setAutoRaise(true);
-        closeButton->setStyleSheet("color: #c00000; font-size: 28px; font-weight: 800;");
+        QPen leaderPen(QColor(200, 0, 0), 2.0);
 
-        layout->addWidget(label);
-        layout->addWidget(closeButton, 0, Qt::AlignTop);
+        auto *vertical = new QGraphicsLineItem(QLineF(scenePos, QPointF(scenePos.x(), endY)));
+        vertical->setPen(leaderPen);
+        vertical->setZValue(25);
+        scene->addItem(vertical);
 
-        auto *proxy = scene->addWidget(card);
-        proxy->setZValue(30);
-        const QSize hint = card->sizeHint();
-        card->setMinimumSize(hint.width() , hint.height());
-        proxy->setFlag(QGraphicsItem::ItemIsSelectable, true);
-        proxy->setPos(scenePos + QPointF(20.0, -70.0));
+        auto *horizontal = new QGraphicsLineItem(QLineF(scenePos, QPointF(endX, scenePos.y())));
+        horizontal->setPen(leaderPen);
+        horizontal->setZValue(25);
+        scene->addItem(horizontal);
 
-        connect(closeButton, &QToolButton::clicked, this, [this, proxy]() {
-            removePointPopup(proxy);
-        });
-
-        m_pointPopups.append(proxy);
+        m_pointPopups.append(vertical);
+        m_pointPopups.append(horizontal);
     }
 }
 
 void MainWindow::clearPointPopups()
 {
-    for (QGraphicsProxyWidget *popup : m_pointPopups) {
-        if (!popup) {
+    for (QGraphicsItem *leader : m_pointPopups) {
+        if (!leader) {
             continue;
         }
-        scene->removeItem(popup);
-        popup->deleteLater();
+        scene->removeItem(leader);
+        delete leader;
     }
     m_pointPopups.clear();
 }
 
-void MainWindow::removePointPopup(QGraphicsProxyWidget *popup)
+void MainWindow::removePointPopup(QGraphicsItem *leader)
 {
-    if (!popup) {
+    if (!leader) {
         return;
     }
 
-    scene->removeItem(popup);
-    m_pointPopups.removeOne(popup);
-    popup->deleteLater();
+    scene->removeItem(leader);
+    m_pointPopups.removeOne(leader);
+    delete leader;
 
     if (m_pointPopups.isEmpty() && ui->actionpuntos_mapa->isChecked()) {
         ui->actionpuntos_mapa->blockSignals(true);
@@ -1198,6 +1193,69 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     const int previousPointCount = dibujos.pointCoordinates().size();
 
     if (obj == view->viewport()) {
+        if (event->type() == QEvent::Wheel) {
+            auto *e = static_cast<QWheelEvent*>(event);
+            if ((e->modifiers() & Qt::AltModifier) && m_compass && m_compass->isVisible()) {
+                const QPointF scenePos = view->mapToScene(e->position().toPoint());
+                const double safeZoom = std::max(currentZoom, 0.01);
+                const double padding = 18.0 / safeZoom;
+
+                bool overCompass = false;
+                const QList<QGraphicsItem*> hitItems = scene->items(
+                    scenePos,
+                    Qt::IntersectsItemShape,
+                    Qt::DescendingOrder,
+                    view->transform());
+                for (QGraphicsItem *item : hitItems) {
+                    for (QGraphicsItem *it = item; it; it = it->parentItem()) {
+                        if (it == m_compass) {
+                            overCompass = true;
+                            break;
+                        }
+                    }
+                    if (overCompass) {
+                        break;
+                    }
+                }
+
+                if (!overCompass) {
+                    const QRectF area(scenePos.x() - padding,
+                                      scenePos.y() - padding,
+                                      padding * 2.0,
+                                      padding * 2.0);
+                    const QList<QGraphicsItem*> nearItems = scene->items(
+                        area,
+                        Qt::IntersectsItemShape,
+                        Qt::DescendingOrder,
+                        view->transform());
+                    for (QGraphicsItem *item : nearItems) {
+                        for (QGraphicsItem *it = item; it; it = it->parentItem()) {
+                            if (it == m_compass) {
+                                overCompass = true;
+                                break;
+                            }
+                        }
+                        if (overCompass) {
+                            break;
+                        }
+                    }
+                }
+
+                if (overCompass) {
+                    double steps = 0.0;
+                    if (!e->angleDelta().isNull()) {
+                        steps = static_cast<double>(e->angleDelta().y()) / 120.0;
+                    } else if (!e->pixelDelta().isNull()) {
+                        steps = static_cast<double>(e->pixelDelta().y()) / 15.0;
+                    }
+                    if (!qFuzzyIsNull(steps) && m_compass->adjustOpeningSteps(steps)) {
+                        e->accept();
+                        return true;
+                    }
+                }
+            }
+        }
+
         if (event->type() == QEvent::Leave || event->type() == QEvent::FocusOut) {
             if (m_leftPanPressed || m_leftPanInProgress) {
                 m_leftPanPressed = false;

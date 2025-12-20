@@ -2,13 +2,16 @@
 
 #include <QtMath>
 #include <algorithm>
+#include <cmath>
 #include <QApplication>
 #include <QGuiApplication>
 #include <QGraphicsScene>
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
 #include <QGraphicsSvgItem>
 #include <QGraphicsView>
+#include <QEvent>
 
 namespace
 {
@@ -23,11 +26,41 @@ public:
     }
 
 protected:
-    // No wheel behavior for compass legs.
+    void wheelEvent(QGraphicsSceneWheelEvent *event) override
+    {
+        if (!event || !(event->modifiers() & Qt::AltModifier)) {
+            if (event) {
+                event->ignore();
+            }
+            return;
+        }
+
+        auto *tool = dynamic_cast<CompassTool*>(parentItem());
+        if (!tool) {
+            event->ignore();
+            return;
+        }
+
+        const int delta = event->delta();
+        if (delta == 0) {
+            event->ignore();
+            return;
+        }
+
+        const double steps = static_cast<double>(delta) / 120.0;
+        if (tool->adjustOpeningSteps(steps)) {
+            event->accept();
+        } else {
+            event->ignore();
+        }
+    }
 };
 
 constexpr QPointF kLegHingeLocal(0.0, 10.0);
 constexpr double kHingePickRadiusPx = 12.0;
+constexpr double kOpeningStepDeg = 2.0;
+constexpr double kOpeningMinDeg = 5.0;
+constexpr double kOpeningMaxDeg = 170.0;
 }
 
 CompassTool::CompassTool(const QString &legSvgResourcePath, QGraphicsItem *parent)
@@ -49,6 +82,8 @@ CompassTool::CompassTool(const QString &legSvgResourcePath, QGraphicsItem *paren
 
     m_fixedLeg->setPos(-kLegHingeLocal);
     m_movingLeg->setPos(-kLegHingeLocal);
+    m_fixedLeg->installSceneEventFilter(this);
+    m_movingLeg->installSceneEventFilter(this);
 
     m_targetSizePx = m_fixedLeg->boundingRect().size();
     applyInitialScale();
@@ -66,6 +101,20 @@ void CompassTool::setToolSize(const QSizeF &sizePx)
 void CompassTool::setView(QGraphicsView *view)
 {
     m_view = view;
+}
+
+bool CompassTool::adjustOpeningSteps(double steps)
+{
+    if (qFuzzyIsNull(steps)) {
+        return false;
+    }
+
+    m_openingDeg = std::clamp(m_openingDeg + steps * kOpeningStepDeg,
+                              kOpeningMinDeg,
+                              kOpeningMaxDeg);
+    applyLegTransforms();
+    updateGeometry();
+    return true;
 }
 
 CompassTool* CompassTool::toggleTool(CompassTool *&tool,
@@ -161,8 +210,9 @@ void CompassTool::applyLegTransforms()
         return;
     }
 
-    m_fixedLeg->setRotation(m_fixedAngleDeg);
-    m_movingLeg->setRotation(m_fixedAngleDeg + m_openingDeg);
+    const double halfOpening = m_openingDeg * 0.5;
+    m_fixedLeg->setRotation(m_fixedAngleDeg - halfOpening);
+    m_movingLeg->setRotation(m_fixedAngleDeg + halfOpening);
 }
 
 void CompassTool::updateGeometry()
@@ -193,6 +243,31 @@ void CompassTool::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
+void CompassTool::wheelEvent(QGraphicsSceneWheelEvent *event)
+{
+    if (!event) {
+        return;
+    }
+
+    if (!(event->modifiers() & Qt::AltModifier)) {
+        event->ignore();
+        return;
+    }
+
+    const int delta = event->delta();
+    if (delta == 0) {
+        event->ignore();
+        return;
+    }
+
+    const double steps = static_cast<double>(delta) / 120.0;
+    if (adjustOpeningSteps(steps)) {
+        event->accept();
+    } else {
+        event->ignore();
+    }
+}
+
 void CompassTool::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if (!event || m_dragCursorActive) {
@@ -211,4 +286,15 @@ void CompassTool::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
         unsetCursor();
     }
     QGraphicsObject::hoverLeaveEvent(event);
+}
+
+bool CompassTool::sceneEventFilter(QGraphicsItem *watched, QEvent *event)
+{
+    if ((watched == m_fixedLeg || watched == m_movingLeg) &&
+        event && event->type() == QEvent::GraphicsSceneWheel) {
+        wheelEvent(static_cast<QGraphicsSceneWheelEvent*>(event));
+        return event->isAccepted();
+    }
+
+    return false;
 }
