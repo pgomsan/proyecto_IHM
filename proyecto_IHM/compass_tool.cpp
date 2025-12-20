@@ -12,6 +12,7 @@
 #include <QGraphicsSvgItem>
 #include <QGraphicsView>
 #include <QEvent>
+#include <QTransform>
 
 namespace
 {
@@ -210,9 +211,9 @@ void CompassTool::applyLegTransforms()
         return;
     }
 
-    const double halfOpening = m_openingDeg * 0.5;
-    m_fixedLeg->setRotation(m_fixedAngleDeg - halfOpening);
-    m_movingLeg->setRotation(m_fixedAngleDeg + halfOpening);
+    // Keep one leg fixed and open/close the other relative to it.
+    m_fixedLeg->setRotation(m_fixedAngleDeg);
+    m_movingLeg->setRotation(m_fixedAngleDeg + m_openingDeg);
 }
 
 void CompassTool::updateGeometry()
@@ -249,7 +250,23 @@ void CompassTool::wheelEvent(QGraphicsSceneWheelEvent *event)
         return;
     }
 
-    if (!(event->modifiers() & Qt::AltModifier)) {
+    if (event->modifiers() & Qt::AltModifier) {
+        const int delta = event->delta();
+        if (delta == 0) {
+            event->ignore();
+            return;
+        }
+
+        const double steps = static_cast<double>(delta) / 120.0;
+        if (adjustOpeningSteps(steps)) {
+            event->accept();
+        } else {
+            event->ignore();
+        }
+        return;
+    }
+
+    if (!(event->modifiers() & Qt::ShiftModifier)) {
         event->ignore();
         return;
     }
@@ -260,12 +277,50 @@ void CompassTool::wheelEvent(QGraphicsSceneWheelEvent *event)
         return;
     }
 
-    const double steps = static_cast<double>(delta) / 120.0;
-    if (adjustOpeningSteps(steps)) {
+    if (!m_view) {
+        double deltaDegrees = (delta / 8.0) * 0.1;
+        m_angleDeg += deltaDegrees;
+        setRotation(m_angleDeg);
+        if (scene()) {
+            scene()->update();
+        }
         event->accept();
-    } else {
-        event->ignore();
+        return;
     }
+
+    const QPointF anchorScenePos = event->scenePos();
+    const QPointF anchorViewportPos = m_view->mapFromScene(anchorScenePos);
+    const QTransform deviceBefore = deviceTransform(m_view->viewportTransform());
+    bool deviceInvertible = false;
+    const QTransform invDeviceBefore = deviceBefore.inverted(&deviceInvertible);
+    if (!deviceInvertible) {
+        event->ignore();
+        return;
+    }
+    const QPointF anchorItemPos = invDeviceBefore.map(anchorViewportPos);
+
+    double deltaDegrees = (delta / 8.0) * 0.1;
+    m_angleDeg += deltaDegrees;
+    setRotation(m_angleDeg);
+
+    const QTransform deviceAfter = deviceTransform(m_view->viewportTransform());
+    const QPointF anchorViewportPosFromItem = deviceAfter.map(anchorItemPos);
+    const QPointF deltaViewport = anchorViewportPos - anchorViewportPosFromItem;
+
+    bool invertible = false;
+    const QTransform invView = m_view->viewportTransform().inverted(&invertible);
+    if (!invertible) {
+        event->ignore();
+        return;
+    }
+    const QPointF deltaScene = invView.map(deltaViewport) - invView.map(QPointF(0.0, 0.0));
+    setPos(pos() + deltaScene);
+
+    if (scene()) {
+        scene()->update();
+    }
+
+    event->accept();
 }
 
 void CompassTool::hoverMoveEvent(QGraphicsSceneHoverEvent *event)

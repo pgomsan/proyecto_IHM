@@ -63,6 +63,7 @@ private:
 
     double m_fixedAngleDeg = 0.0;
     double m_openingDeg = 35.0;
+    double m_angleDeg = 0.0;
 
     bool m_dragCursorActive = false;
 
