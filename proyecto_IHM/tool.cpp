@@ -8,6 +8,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QSvgRenderer>
+#include <QTransform>
 
 Tool::Tool(const QString& svgResourcePath, QGraphicsItem* parent)
     : QGraphicsSvgItem(svgResourcePath, parent)
@@ -30,6 +31,11 @@ void Tool::setToolSize(const QSizeF& sizePx)
 {
     m_targetSizePx = sizePx;
     applyInitialScale();
+}
+
+void Tool::setView(QGraphicsView *view)
+{
+    m_view = view;
 }
 
 void Tool::applyInitialScale()
@@ -78,6 +84,7 @@ Tool* Tool::toggleTool(Tool *&tool,
         tool->setPos(view->mapToScene(initialViewportPos));
     }
 
+    tool->setView(view);
     tool->setVisible(visible);
     if (visible) {
         tool->setZValue(1000); // ensure on top si se reactiva
@@ -101,10 +108,43 @@ void Tool::wheelEvent(QGraphicsSceneWheelEvent *event)
         return;
     }
 
-    // Igual que antes: rotación suave
+    if (!m_view) {
+        double deltaDegrees = (delta / 8.0) * 0.1; // ≈ 1.5° por "clic"
+        m_angleDeg += deltaDegrees;
+        setRotation(m_angleDeg);
+        if (scene())
+            scene()->update();
+        event->accept();
+        return;
+    }
+
+    const QPointF anchorScenePos = event->scenePos();
+    const QPointF anchorViewportPos = m_view->mapFromScene(anchorScenePos);
+    const QTransform deviceBefore = deviceTransform(m_view->viewportTransform());
+    bool deviceInvertible = false;
+    const QTransform invDeviceBefore = deviceBefore.inverted(&deviceInvertible);
+    if (!deviceInvertible) {
+        event->ignore();
+        return;
+    }
+    const QPointF anchorItemPos = invDeviceBefore.map(anchorViewportPos);
+
     double deltaDegrees = (delta / 8.0) * 0.1; // ≈ 1.5° por "clic"
     m_angleDeg += deltaDegrees;
     setRotation(m_angleDeg);
+
+    const QTransform deviceAfter = deviceTransform(m_view->viewportTransform());
+    const QPointF anchorViewportPosFromItem = deviceAfter.map(anchorItemPos);
+    const QPointF deltaViewport = anchorViewportPos - anchorViewportPosFromItem;
+
+    bool invertible = false;
+    const QTransform invView = m_view->viewportTransform().inverted(&invertible);
+    if (!invertible) {
+        event->ignore();
+        return;
+    }
+    const QPointF deltaScene = invView.map(deltaViewport) - invView.map(QPointF(0.0, 0.0));
+    setPos(pos() + deltaScene);
 
     if (scene())
         scene()->update();
