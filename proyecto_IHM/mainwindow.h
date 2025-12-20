@@ -28,6 +28,7 @@ class QTextEdit;
 class QWidget;
 class QToolButton;
 class QAction;
+class CompassTool;
 
 class MainWindow : public QMainWindow
 {
@@ -85,7 +86,7 @@ private:
     // Display de herramientas
     Tool* m_protractor = nullptr;
     Tool* m_ruler = nullptr;
-    Tool* m_compass = nullptr;
+    CompassTool* m_compass = nullptr;
     QToolButton *m_logoutButton = nullptr;
     QAction *m_logoutSpacerAction = nullptr;
     QAction *m_helpLogoutSeparatorAction = nullptr;

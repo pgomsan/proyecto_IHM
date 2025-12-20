@@ -1,6 +1,7 @@
 #include "questiondialog.h"
 
 #include <QAbstractButton>
+#include <QAbstractSlider>
 #include <QButtonGroup>
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
@@ -10,9 +11,11 @@
 #include <QRadioButton>
 #include <QRandomGenerator>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QStyle>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <QWidget>
 #include <algorithm>
 #include <random>
 
@@ -129,6 +132,8 @@ ProblemDialog::ProblemDialog(QWidget *parent)
     });
     connect(buttonBox, &QDialogButtonBox::rejected, this, &ProblemDialog::reject);
     mainLayout->addWidget(buttonBox);
+
+    installDragFilters();
 }
 
 void ProblemDialog::setProblem(const Problem &problem)
@@ -172,6 +177,73 @@ void ProblemDialog::mousePressEvent(QMouseEvent *event)
         return;
     }
     QDialog::mousePressEvent(event);
+}
+
+bool ProblemDialog::eventFilter(QObject *watched, QEvent *event)
+{
+    if (!event) {
+        return QDialog::eventFilter(watched, event);
+    }
+
+    if (event->type() == QEvent::MouseButtonPress) {
+        auto *e = static_cast<QMouseEvent*>(event);
+        if (e->button() == Qt::LeftButton && !isInteractiveWidget(watched)) {
+            m_draggingWindow = true;
+            m_dragStartGlobalPos = e->globalPosition().toPoint();
+            m_dragStartWindowPos = frameGeometry().topLeft();
+            e->accept();
+            return true;
+        }
+    } else if (event->type() == QEvent::MouseMove) {
+        auto *e = static_cast<QMouseEvent*>(event);
+        if (m_draggingWindow && (e->buttons() & Qt::LeftButton)) {
+            const QPoint currentGlobal = e->globalPosition().toPoint();
+            const QPoint delta = currentGlobal - m_dragStartGlobalPos;
+            move(m_dragStartWindowPos + delta);
+            e->accept();
+            return true;
+        }
+    } else if (event->type() == QEvent::MouseButtonRelease) {
+        auto *e = static_cast<QMouseEvent*>(event);
+        if (e->button() == Qt::LeftButton && m_draggingWindow) {
+            m_draggingWindow = false;
+            e->accept();
+            return true;
+        }
+    } else if (event->type() == QEvent::Leave || event->type() == QEvent::FocusOut) {
+        m_draggingWindow = false;
+    }
+
+    return QDialog::eventFilter(watched, event);
+}
+
+void ProblemDialog::installDragFilters()
+{
+    installEventFilter(this);
+    const auto children = findChildren<QWidget*>();
+    for (QWidget *child : children) {
+        if (child) {
+            child->installEventFilter(this);
+        }
+    }
+}
+
+bool ProblemDialog::isInteractiveWidget(QObject *watched)
+{
+    if (!watched) {
+        return true;
+    }
+
+    if (qobject_cast<QAbstractButton*>(watched)) {
+        return true;
+    }
+    if (qobject_cast<QScrollBar*>(watched)) {
+        return true;
+    }
+    if (qobject_cast<QAbstractSlider*>(watched)) {
+        return true;
+    }
+    return false;
 }
 
 void ProblemDialog::handleCheckAnswer()
