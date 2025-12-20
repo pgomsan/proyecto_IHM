@@ -138,6 +138,7 @@ private:
     QVector<QGraphicsItem*> m_pointPopups;
     void promptLoginOnStartup();
     bool m_startupLoginPromptShown = false;
+    bool attemptLogin(const QString &username, const QString &password);
 
 protected:
     QMenu *createPopupMenu() override; // Para que no se pueda quitar el toolbar

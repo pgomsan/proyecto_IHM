@@ -2,6 +2,7 @@
 
 #include <QDialogButtonBox>
 #include <QFile>
+#include <QPushButton>
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
@@ -30,6 +31,9 @@ HelpDialog::HelpDialog(QWidget *parent)
     layout->addWidget(m_browser, 1);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, this);
+    if (auto *closeButton = buttons->button(QDialogButtonBox::Close)) {
+        closeButton->setText(tr("Cerrar"));
+    }
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     layout->addWidget(buttons);
