@@ -8,6 +8,7 @@
 #include <QPoint>
 #include <QSize>
 #include <QRectF>
+#include <QPair>
 #include "useragent.h"
 #include "profiledialog.h"
 #include "tool.h"
@@ -23,7 +24,7 @@ class QGraphicsScene;
 class QGraphicsView;
 class QMenu;
 class QGraphicsItem;
-class QGraphicsProxyWidget;
+class QGraphicsPathItem;
 class QTextEdit;
 class QWidget;
 class QToolButton;
@@ -132,9 +133,9 @@ private:
     void markAddTextInactive();
     void showPointPopups();
     void clearPointPopups();
-    void removePointPopup(QGraphicsProxyWidget *popup);
+    void removePointPopup(QGraphicsItem *leader);
     void refreshPointPopups();
-    QVector<QGraphicsProxyWidget*> m_pointPopups;
+    QVector<QGraphicsItem*> m_pointPopups;
     void promptLoginOnStartup();
     bool m_startupLoginPromptShown = false;
 

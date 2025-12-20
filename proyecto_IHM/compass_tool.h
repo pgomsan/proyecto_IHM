@@ -17,6 +17,7 @@ class QGraphicsSceneMouseEvent;
 class QGraphicsSceneWheelEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
+class QEvent;
 
 class CompassTool : public QGraphicsObject
 {
@@ -28,6 +29,7 @@ public:
 
     void setToolSize(const QSizeF &sizePx);
     void setView(QGraphicsView *view);
+    bool adjustOpeningSteps(double steps);
 
     static CompassTool* toggleTool(CompassTool *&tool,
                                    QGraphicsScene *scene,
@@ -46,8 +48,10 @@ public:
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void wheelEvent(QGraphicsSceneWheelEvent *event) override;
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event) override;
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
+    bool sceneEventFilter(QGraphicsItem *watched, QEvent *event) override;
 
 private:
     void applyInitialScale();
